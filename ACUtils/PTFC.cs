@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ACUtils
@@ -63,7 +61,9 @@ namespace ACUtils
                         var o = action(t);
                         OutQueue.Enqueue(o);
                     }
-                    catch (DiscartException) { }
+                    catch (DiscartException)
+                    {
+                    }
                 }
             }
         }
@@ -155,7 +155,9 @@ namespace ACUtils
                         var o = action(t);
                         OutQueue.Enqueue(o);
                     }
-                    catch (DiscartException) { }
+                    catch (DiscartException)
+                    {
+                    }
                 }
             }
         }
