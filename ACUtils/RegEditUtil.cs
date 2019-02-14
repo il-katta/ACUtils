@@ -27,33 +27,37 @@ namespace ACUtils
             RegistryKey key = BaseKey.OpenSubKey(
                 RegKey,
                 RegistryKeyPermissionCheck.ReadWriteSubTree,
-                RegistryRights.ChangePermissions | RegistryRights.ReadKey | RegistryRights.WriteKey | RegistryRights.FullControl
-           );
+                RegistryRights.ChangePermissions | RegistryRights.ReadKey | RegistryRights.WriteKey |
+                RegistryRights.FullControl
+            );
 
             // permessi da applicare
             RegistryRights acl = RegistryRights.WriteKey | RegistryRights.ReadKey | RegistryRights.Delete;
 
             // attuale policy
-            RegistrySecurity reg_sec = key.GetAccessControl();
+            if (EnvironmentUtils.IsWin())
+            {
+                RegistrySecurity reg_sec = key?.GetAccessControl();
 
-            // aggiunta policy all'attuale
-            reg_sec.AddAccessRule(
-                new RegistryAccessRule(
-                    $"{Environment.UserDomainName}\\{Environment.UserName}",
-                    acl,
-                    InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                    PropagationFlags.InheritOnly,
-                    AccessControlType.Allow
-                )
-            );
+                // aggiunta policy all'attuale
+                reg_sec?.AddAccessRule(
+                    new RegistryAccessRule(
+                        $"{Environment.UserDomainName}\\{Environment.UserName}",
+                        acl,
+                        InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                        PropagationFlags.InheritOnly,
+                        AccessControlType.Allow
+                    )
+                );
 
-            // definizione proprietario
-            reg_sec.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
+                // definizione proprietario
+                reg_sec?.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
 
-            // applicazione della policy
-            key.SetAccessControl(reg_sec);
+                // applicazione della policy
+                key?.SetAccessControl(reg_sec);
+            }
 
-            key.Close();
+            key?.Close();
         }
 
         public static void Write(string keyname, string subkeyname, string value)

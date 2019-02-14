@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>1.0.0.2</Version>
-    <PackageVersion>1.0.0.4</PackageVersion>
+    <PackageVersion>1.0.0.5</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
