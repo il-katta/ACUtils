@@ -457,5 +457,36 @@ namespace ACUtils
                 client.UploadFile(ftpUrl, System.Net.WebRequestMethods.Ftp.UploadFile, localFilePath);
             }
         }
+
+        public static void FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        {
+            // aggiunge la directory di upload se specificata
+            if (!string.IsNullOrEmpty(ftpPath))
+            {
+                ftpUrl = System.IO.Path.Combine(ftpUrl, ftpPath);
+            }
+            // aggiunge il nome del file
+            ftpUrl = System.IO.Path.Combine(ftpUrl, System.IO.Path.GetFileName(localFilePath));
+
+            System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
+            request.UsePassive = usePassive;
+            request.Method = System.Net.WebRequestMethods.Ftp.UploadFile;
+            request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
+
+            byte[] fileContents;
+            using (System.IO.StreamReader sourceStream = new System.IO.StreamReader(localFilePath))
+            {
+                fileContents = System.Text.Encoding.UTF8.GetBytes(sourceStream.ReadToEnd());
+            }
+            request.ContentLength = fileContents.Length;
+            using (System.IO.Stream requestStream = request.GetRequestStream())
+            {
+                requestStream.Write(fileContents, 0, fileContents.Length);
+            }
+            using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
+            {
+                Console.WriteLine($"Upload di {localFilePath} completato: {response.StatusDescription}");
+            }
+        }
     }
 }
