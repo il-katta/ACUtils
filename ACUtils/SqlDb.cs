@@ -11,13 +11,20 @@ namespace ACUtils
     public partial class SqlDb : IDisposable
     {
         public string ConnectionString { get; }
-        public ILogger logger { get; }
+        public ILogger logger { get; protected set; }
         private TransactionScope scope;
 
         public SqlDb(string connectionString, ILogger logger)
         {
             this.ConnectionString = connectionString;
             this.logger = logger;
+            scope = null;
+        }
+
+        public SqlDb(string connectionString, Serilog.ILogger logger)
+        {
+            this.ConnectionString = connectionString;
+            this.logger = new SerilogWrapper(logger);
             scope = null;
         }
 

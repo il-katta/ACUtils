@@ -2,7 +2,7 @@
 
 namespace ACUtils
 {
-    internal class SerilogWrapper : ACUtils.ILogger
+    public class SerilogWrapper : ACUtils.ILogger
     {
         private Serilog.ILogger logger;
 
