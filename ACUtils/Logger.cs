@@ -280,6 +280,51 @@ namespace ACUtils
         {
             this.LogException(exception);
         }
+
+        void ILogger.Debug(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Debug(string messageTemplate, params object[] propertyValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Information(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Information(string messageTemplate, params object[] propertyValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Warning(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Warning(string messageTemplate, params object[] propertyValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Error(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Error(string messageTemplate, params object[] propertyValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILogger.Exception(Exception exception)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
     }
