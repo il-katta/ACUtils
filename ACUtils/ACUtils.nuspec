@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ACUtils</id>
+    <version>1.0.0.1</version>
+    <title>ACUtils</title>
+    <authors>Andrea Cattaneo</authors>
+    <owners>Andrea Cattaneo</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ACUtils</description>
+    <copyright>Copyright 2019</copyright>
+  </metadata>
+</package>

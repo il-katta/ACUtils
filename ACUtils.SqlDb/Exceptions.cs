@@ -11,10 +11,4 @@
     }
 
     public class DiscartException : System.Exception { }
-
-    public class FileExistsException : System.IO.IOException
-    {
-        public FileExistsException(string message) : base(message) { }
-    }
-
 }

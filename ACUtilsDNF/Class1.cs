@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ACUtilsDNF
 {
-    public class Class1
+    class Class1
     {
+        
     }
 }
