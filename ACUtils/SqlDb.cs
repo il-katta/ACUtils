@@ -14,6 +14,21 @@ namespace ACUtils
         public ILogger logger { get; protected set; }
         private TransactionScope scope;
 
+        private MissingSchemaAction? missingSchemaAction;
+
+        public MissingSchemaAction MissingSchemaAction
+        {
+            get
+            {
+                if (missingSchemaAction == null)
+                {
+                    missingSchemaAction = MissingSchemaAction.AddWithKey;
+                }
+                return missingSchemaAction.GetValueOrDefault();
+            }
+            set => missingSchemaAction = value;
+        }
+
         public SqlDb(string connectionString, ILogger logger)
         {
             this.ConnectionString = connectionString;
@@ -86,7 +101,7 @@ namespace ACUtils
                 connection.Open();
                 SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
                 DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+                adapter.MissingSchemaAction = this.MissingSchemaAction;
                 adapter.Fill(ds);
                 connection.Close();
                 return ds;
@@ -101,7 +116,7 @@ namespace ACUtils
                 connection.Open();
                 SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
                 DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+                adapter.MissingSchemaAction = this.MissingSchemaAction;
                 adapter.Fill(ds);
                 connection.Close();
                 return ds;
@@ -186,6 +201,7 @@ namespace ACUtils
                 return selectCommand.ExecuteNonQuery() > 0;
             }
         }
+
         public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", params KeyValuePair<string, object>[] queryParams)
         {
             DataTable dt = this.QueryDataTable(queryString, queryParams);
@@ -198,15 +214,22 @@ namespace ACUtils
           );
         }
 
-        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";")
+        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool boolToIntConvert = false)
         {
+           
             CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
             {
                 TrimOptions = CsvHelper.Configuration.TrimOptions.InsideQuotes,
                 Escape = Escape,
                 Quote = Quote,
                 Delimiter = Delimiter,
+                TypeConverterCache = null
             };
+
+            if (boolToIntConvert)
+            {
+               csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
+            }
 
             using (System.IO.StreamWriter textWriter = System.IO.File.CreateText(csvFilePath))
             {
