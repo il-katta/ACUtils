@@ -229,6 +229,7 @@ namespace ACUtils
 
             if (BoolToIntConvert)
             {
+               csvConf.TypeConverterCache = new CsvHelper.TypeConversion.TypeConverterCache();
                csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
             }
 
