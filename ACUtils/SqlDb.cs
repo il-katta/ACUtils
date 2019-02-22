@@ -202,7 +202,7 @@ namespace ACUtils
             }
         }
 
-        public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", params KeyValuePair<string, object>[] queryParams)
+        public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
         {
             DataTable dt = this.QueryDataTable(queryString, queryParams);
             ToCsv(
@@ -210,11 +210,12 @@ namespace ACUtils
                 csvFilePath: csvFilePath,
                 Escape: Escape,
                 Quote: Quote,
-                Delimiter: Delimiter
+                Delimiter: Delimiter,
+                BoolToIntConvert: BoolToIntConvert
           );
         }
 
-        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool boolToIntConvert = false)
+        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
         {
            
             CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
@@ -226,7 +227,7 @@ namespace ACUtils
                 TypeConverterCache = null
             };
 
-            if (boolToIntConvert)
+            if (BoolToIntConvert)
             {
                csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
             }
