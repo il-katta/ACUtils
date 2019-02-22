@@ -8,7 +8,7 @@ using System.Transactions;
 
 namespace ACUtils
 {
-    public partial class SqlDb : IDisposable
+    public class SqlDb : IDisposable
     {
         public string ConnectionString { get; }
         public ILogger logger { get; protected set; }
@@ -217,7 +217,7 @@ namespace ACUtils
 
         public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
         {
-           
+
             CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
             {
                 TrimOptions = CsvHelper.Configuration.TrimOptions.InsideQuotes,
@@ -229,8 +229,8 @@ namespace ACUtils
 
             if (BoolToIntConvert)
             {
-               csvConf.TypeConverterCache = new CsvHelper.TypeConversion.TypeConverterCache();
-               csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
+                csvConf.TypeConverterCache = new CsvHelper.TypeConversion.TypeConverterCache();
+                csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
             }
 
             using (System.IO.StreamWriter textWriter = System.IO.File.CreateText(csvFilePath))

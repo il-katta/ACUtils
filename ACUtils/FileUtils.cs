@@ -458,13 +458,14 @@ namespace ACUtils
             }
         }
 
-        public static void FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        public static System.Net.FtpWebResponse FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
         {
             // aggiunge la directory di upload se specificata
             if (!string.IsNullOrEmpty(ftpPath))
             {
-                ftpUrl = System.IO.Path.Combine(ftpUrl, ftpPath);
+                ftpUrl = $"{ftpUrl}{ftpPath}";
             }
+            
             // aggiunge il nome del file
             ftpUrl = System.IO.Path.Combine(ftpUrl, System.IO.Path.GetFileName(localFilePath));
 
@@ -485,7 +486,7 @@ namespace ACUtils
             }
             using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
             {
-                Console.WriteLine($"Upload di {localFilePath} completato: {response.StatusDescription}");
+                return response;
             }
         }
     }
