@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.14</Version>
-    <PackageVersion>1.0.0.14</PackageVersion>
+    <Version>1.0.0.15</Version>
+    <PackageVersion>1.0.0.15</PackageVersion>
     <Description>Collezione di utility varie</Description>
     <NeutralLanguage>it</NeutralLanguage>
   </PropertyGroup>
