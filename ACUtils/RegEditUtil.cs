@@ -98,7 +98,7 @@ namespace ACUtils
         {
             try
             {
-                return Convert.ToString(_baseKey?.GetValue(keyname, null));
+                return Convert.ToString(_baseKey?.GetValue($"{_regKey}\\{keyname}", null));
             }
             catch (Exception)
             {
@@ -125,7 +125,7 @@ namespace ACUtils
         {
             try
             {
-                return _baseKey?.GetValue(keyname, null) != null;
+                return _baseKey?.GetValue($"{_regKey}\\{keyname}", null) != null;
             }
             catch (Exception)
             {
