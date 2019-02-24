@@ -17,7 +17,7 @@ namespace ACUtils
             _regKey = regKey;
             Init();
         }
-        
+
         public RegEditUtil(string regKey = @"Software\ACUtils")
         {
             _regKey = regKey;
@@ -74,6 +74,11 @@ namespace ACUtils
             }
         }
 
+        public void Write(string keyname, string value)
+        {
+            _baseKey.SetValue(keyname, value);
+        }
+
         public string Read(string keyname, string subKeyname)
         {
             try
@@ -86,6 +91,45 @@ namespace ACUtils
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public string Read(string keyname)
+        {
+            try
+            {
+                return Convert.ToString(_baseKey?.GetValue(keyname, null));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public bool Exists(string keyname, string subKeyname)
+        {
+            try
+            {
+                using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+                {
+                    return subKey?.GetValue(subKeyname, null) != null;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool Exists(string keyname)
+        {
+            try
+            {
+                return _baseKey?.GetValue(keyname, null) != null;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }
