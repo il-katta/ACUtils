@@ -43,24 +43,31 @@ namespace ACUtils
             // attuale policy
             if (EnvironmentUtils.IsWin())
             {
-                RegistrySecurity regSec = key?.GetAccessControl();
+                try
+                {
+                    RegistrySecurity regSec = key?.GetAccessControl();
 
-                // aggiunta policy all'attuale
-                regSec?.AddAccessRule(
-                    new RegistryAccessRule(
-                        $"{Environment.UserDomainName}\\{Environment.UserName}",
-                        acl,
-                        InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                        PropagationFlags.InheritOnly,
-                        AccessControlType.Allow
-                    )
-                );
+                    // aggiunta policy all'attuale
+                    regSec?.AddAccessRule(
+                        new RegistryAccessRule(
+                            $"{Environment.UserDomainName}\\{Environment.UserName}",
+                            acl,
+                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                            PropagationFlags.InheritOnly,
+                            AccessControlType.Allow
+                        )
+                    );
 
-                // definizione proprietario
-                regSec?.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
+                    // definizione proprietario
+                    regSec?.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
 
-                // applicazione della policy
-                key?.SetAccessControl(regSec);
+                    // applicazione della policy
+                    key?.SetAccessControl(regSec);
+                }
+                catch
+                {
+                    // ignore
+                }
             }
 
             key?.Close();
