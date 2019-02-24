@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtilsDNF", "ACUtilsDNF\ACUtilsDNF.csproj", "{A3C8A178-DD28-4D2F-B64A-5AB8602FFAB3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{608B23C0-8D94-4C93-AA62-D6DF3DC44F93}"
+ProjectSection(SolutionItems) = preProject
+	projedit.py = projedit.py
+	Jenkinsfile = Jenkinsfile
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

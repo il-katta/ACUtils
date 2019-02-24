@@ -1,3 +1,4 @@
+@Library('jenkins-libs') _
 pipeline {
     agent { node { label 'msbuild && linux' } }
     options {
@@ -20,11 +21,23 @@ pipeline {
         stage('build') {
             steps {
                 script {
+                    env.NEW_VERSION = sh (
+                        script: 'python projedit.py ACUtils/ACUtils.csproj',
+                        returnStdout: true
+                    ).trim()
+
                     sh '''
                         rm -rf ACUtils/bin
                         dotnet build -c Release ACUtils/ACUtils.csproj
                         dotnet pack -c Release --include-symbols -p:SymbolPackageFormat=snupkg ACUtils/ACUtils.csproj
                     '''
+                    env.J_CREDS_IDS = 'repo-git'
+                    env.J_GIT_CONFIG = 'false'
+                    env.J_USERNAME = 'jenkins agent'
+                    env.J_EMAIL = 'jenkins@s.loopback.it'
+                    env.J_GIT_CONFIG = "true"
+                    env.BRANCH_NAME = "master"
+                    git_push_ssh.pushSSH(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
                 }
             }
         }
