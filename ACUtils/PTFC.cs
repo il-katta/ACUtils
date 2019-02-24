@@ -27,23 +27,22 @@ namespace ACUtils
             this.producer = producer;
         }
 
-        public bool TryDequeue(out T t)
-        {
-            if (IsRunningOrNotEmpty)
-            {
-                return OutQueue.TryDequeue(out t);
-            }
-
-            t = default(T);
-            return false;
-        }
 
         public PTFC<T> Produce(Action<ConcurrentQueue<T>> action)
         {
             isRunning = true;
             Task.Run(() =>
             {
-                action(OutQueue);
+                try
+                {
+                    action(OutQueue);
+                }
+                catch
+                {
+                    isRunning = false;
+                    throw;
+                }
+
                 isRunning = false;
             });
             return new PTFC<T>(this);
@@ -131,6 +130,17 @@ namespace ACUtils
                 isRunning = false;
             });
             return new PTFC<T>(this);
+        }
+
+        public bool TryDequeue(out T t)
+        {
+            if (IsRunningOrNotEmpty)
+            {
+                return OutQueue.TryDequeue(out t);
+            }
+
+            t = default(T);
+            return false;
         }
     }
 
