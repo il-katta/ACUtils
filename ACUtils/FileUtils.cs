@@ -79,6 +79,12 @@ namespace ACUtils
             }
         }
 
+        public static bool IsNotEmptyDirectory(string sPath)
+        {
+            if (!IsDirectory(sPath)) return false;
+            return ListFiles(sPath).Any();
+        }
+
         /// <summary>
         /// sposta un file
         /// </summary>
