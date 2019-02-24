@@ -36,7 +36,7 @@ pipeline {
                     env.J_USERNAME = 'jenkins agent'
                     env.J_EMAIL = 'jenkins@s.loopback.it'
                     env.J_GIT_CONFIG = "true"
-                    env.BRANCH_NAME = "master"
+                    env.BRANCH_NAME = "jenkins"
                     git_push_ssh.pushSSH(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
                 }
             }
