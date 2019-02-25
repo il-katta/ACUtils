@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''
+    incrementa l'ultimo numero di versione ( build version ) nei file .csproj per progetti ".NET Standard"
     usage: projedit.py path/to/project.csproj
-    incrementa l'ultimo numero di versione ( build version )
 '''
 from xml.etree import ElementTree
 import sys
@@ -39,27 +39,33 @@ def inc_version_if_exists(proj, path):
     return new_version
 
 
-file_name = sys.argv[1]
+def main_csproj(file_name):
+    proj = ElementTree.parse(file_name)
+    version = None
+    try:
+        new_version = inc_version_if_exists(proj, 'PropertyGroup/Version')
+        if new_version:
+            version = new_version
+    except Exception as e:
+        print(str(e))
 
-proj = ElementTree.parse(file_name)
-version = None
-try:
-    new_version = inc_version_if_exists(proj, 'PropertyGroup/Version')
-    if new_version:
-        version = new_version
-except Exception as e:
-    print(str(e))
+    try:
+        new_version = inc_version_if_exists(proj, 'PropertyGroup/PackageVersion')
+        if new_version:
+            version = new_version
+    except Exception as e:
+        print(str(e))
 
-try:
-    new_version = inc_version_if_exists(proj, 'PropertyGroup/PackageVersion')
-    if new_version:
-        version = new_version
-except Exception as e:
-    print(str(e))
+    if version is None:
+        print("no changes")
+        sys.exit(1)
 
-if version is None:
-    print("no changes")
-    sys.exit(1)
 
-proj.write(file_name)
-print(version)
+    proj.write(file_name)
+    print(version)
+
+# main
+if __name__ == '__main__':
+    file_name = sys.argv[1]
+
+    main_csproj(file_name)
