@@ -8,11 +8,26 @@ using System.Transactions;
 
 namespace ACUtils
 {
-    public partial class SqlDb : IDisposable
+    public class SqlDb : IDisposable
     {
         public string ConnectionString { get; }
         public ILogger logger { get; protected set; }
         private TransactionScope scope;
+
+        private MissingSchemaAction? missingSchemaAction;
+
+        public MissingSchemaAction MissingSchemaAction
+        {
+            get
+            {
+                if (missingSchemaAction == null)
+                {
+                    missingSchemaAction = MissingSchemaAction.AddWithKey;
+                }
+                return missingSchemaAction.GetValueOrDefault();
+            }
+            set => missingSchemaAction = value;
+        }
 
         public SqlDb(string connectionString, ILogger logger)
         {
@@ -86,7 +101,7 @@ namespace ACUtils
                 connection.Open();
                 SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
                 DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+                adapter.MissingSchemaAction = this.MissingSchemaAction;
                 adapter.Fill(ds);
                 connection.Close();
                 return ds;
@@ -101,7 +116,7 @@ namespace ACUtils
                 connection.Open();
                 SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
                 DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+                adapter.MissingSchemaAction = this.MissingSchemaAction;
                 adapter.Fill(ds);
                 connection.Close();
                 return ds;
@@ -186,7 +201,8 @@ namespace ACUtils
                 return selectCommand.ExecuteNonQuery() > 0;
             }
         }
-        public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", params KeyValuePair<string, object>[] queryParams)
+
+        public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
         {
             DataTable dt = this.QueryDataTable(queryString, queryParams);
             ToCsv(
@@ -194,19 +210,28 @@ namespace ACUtils
                 csvFilePath: csvFilePath,
                 Escape: Escape,
                 Quote: Quote,
-                Delimiter: Delimiter
+                Delimiter: Delimiter,
+                BoolToIntConvert: BoolToIntConvert
           );
         }
 
-        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";")
+        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
         {
+
             CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
             {
                 TrimOptions = CsvHelper.Configuration.TrimOptions.InsideQuotes,
                 Escape = Escape,
                 Quote = Quote,
                 Delimiter = Delimiter,
+                TypeConverterCache = null
             };
+
+            if (BoolToIntConvert)
+            {
+                csvConf.TypeConverterCache = new CsvHelper.TypeConversion.TypeConverterCache();
+                csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
+            }
 
             using (System.IO.StreamWriter textWriter = System.IO.File.CreateText(csvFilePath))
             {

@@ -94,5 +94,18 @@ namespace Tests
                 Assert.AreEqual(expected_checksum, FileUtils.Checksum(data));
             }
         }
+
+        [Test]
+        public void FtpUpload()
+        {
+            FileUtils.FtpUpload(
+                Uri.UnescapeDataString(new UriBuilder(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Path),
+                "ftp://localhost:21/",
+                "/",
+                "",
+                "",
+                false
+            );
+        }
     }
 }

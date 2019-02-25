@@ -7,25 +7,31 @@ namespace ACUtils
 {
     public class RegEditUtil
     {
-        private static string RegKey;
+        readonly string _regKey;
 
-        private static RegistryKey BaseKey = Registry.LocalMachine;
+        readonly RegistryKey _baseKey = Registry.LocalMachine;
 
-        public RegEditUtil(RegistryKey baseKey, string regKey)
+        public RegEditUtil(RegistryKey baseKey, string regKey = @"Software\ACUtils")
         {
-            BaseKey = baseKey;
-            RegKey = regKey;
+            _baseKey = baseKey;
+            _regKey = regKey;
             Init();
         }
 
-        public static void Init()
+        public RegEditUtil(string regKey = @"Software\ACUtils")
+        {
+            _regKey = regKey;
+            Init();
+        }
+
+        public void Init()
         {
             // creazione chiave
-            BaseKey.CreateSubKey(RegKey, RegistryKeyPermissionCheck.ReadWriteSubTree).Close();
+            _baseKey?.CreateSubKey(_regKey ?? "", RegistryKeyPermissionCheck.ReadWriteSubTree)?.Close();
 
             // apertura con permessi per modifica permesssi
-            RegistryKey key = BaseKey.OpenSubKey(
-                RegKey,
+            RegistryKey key = _baseKey?.OpenSubKey(
+                _regKey ?? "",
                 RegistryKeyPermissionCheck.ReadWriteSubTree,
                 RegistryRights.ChangePermissions | RegistryRights.ReadKey | RegistryRights.WriteKey |
                 RegistryRights.FullControl
@@ -37,44 +43,56 @@ namespace ACUtils
             // attuale policy
             if (EnvironmentUtils.IsWin())
             {
-                RegistrySecurity reg_sec = key?.GetAccessControl();
+                try
+                {
+                    RegistrySecurity regSec = key?.GetAccessControl();
 
-                // aggiunta policy all'attuale
-                reg_sec?.AddAccessRule(
-                    new RegistryAccessRule(
-                        $"{Environment.UserDomainName}\\{Environment.UserName}",
-                        acl,
-                        InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                        PropagationFlags.InheritOnly,
-                        AccessControlType.Allow
-                    )
-                );
+                    // aggiunta policy all'attuale
+                    regSec?.AddAccessRule(
+                        new RegistryAccessRule(
+                            $"{Environment.UserDomainName}\\{Environment.UserName}",
+                            acl,
+                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                            PropagationFlags.InheritOnly,
+                            AccessControlType.Allow
+                        )
+                    );
 
-                // definizione proprietario
-                reg_sec?.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
+                    // definizione proprietario
+                    regSec?.SetOwner(new NTAccount($"{Environment.UserDomainName}\\{Environment.UserName}"));
 
-                // applicazione della policy
-                key?.SetAccessControl(reg_sec);
+                    // applicazione della policy
+                    key?.SetAccessControl(regSec);
+                }
+                catch
+                {
+                    // ignore
+                }
             }
 
             key?.Close();
         }
 
-        public static void Write(string keyname, string subkeyname, string value)
+        public void Write(string keyname, string subkeyname, string value)
         {
-            using (RegistryKey key = BaseKey.CreateSubKey($"{RegKey}\\{keyname}", true))
+            using (RegistryKey key = _baseKey.CreateSubKey($"{_regKey}\\{keyname}", true))
             {
                 key.SetValue(subkeyname, value);
             }
         }
 
-        public static string Read(string keyname, string sub_keyname)
+        public void Write(string keyname, string value)
+        {
+            _baseKey.SetValue(keyname, value);
+        }
+
+        public string Read(string keyname, string subKeyname)
         {
             try
             {
-                using (RegistryKey sub_key = BaseKey.OpenSubKey($"{RegKey}\\{keyname}", false))
+                using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
                 {
-                    return Convert.ToString(sub_key.GetValue(sub_keyname, null));
+                    return Convert.ToString(subKey?.GetValue(subKeyname, null));
                 }
             }
             catch (Exception)
@@ -83,22 +101,43 @@ namespace ACUtils
             }
         }
 
-        /*
-         public static void StringaConnessione_Set(string StringaConnessione, string profile)
-         {
-             Init();
-             Write($"{RegKey}\\{profile}", REG_KEY_STRINGA_CONNESSIONE, StringaConnessione);
-         }
+        public string Read(string keyname)
+        {
+            try
+            {
+                return Convert.ToString(_baseKey?.GetValue($"{_regKey}\\{keyname}", null));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
-         /// <summary>
-         /// ritorna la stringa di connessione dal registro di sistema
-         /// </summary>
-         /// <param name="StringaConnessione"></param>
-         /// <returns></returns>
-         public static string StringaConnessione_Get(string profile)
-         {
-             return Read($"{RegKey}\\{profile}", REG_KEY_STRINGA_CONNESSIONE);
-         }
-         */
+        public bool Exists(string keyname, string subKeyname)
+        {
+            try
+            {
+                using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+                {
+                    return subKey?.GetValue(subKeyname, null) != null;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool Exists(string keyname)
+        {
+            try
+            {
+                return _baseKey?.GetValue($"{_regKey}\\{keyname}", null) != null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }
