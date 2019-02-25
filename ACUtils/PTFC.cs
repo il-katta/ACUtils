@@ -37,13 +37,10 @@ namespace ACUtils
                 {
                     action(OutQueue);
                 }
-                catch
+                finally
                 {
                     isRunning = false;
-                    throw;
                 }
-
-                isRunning = false;
             });
             return new PTFC<T>(this);
         }
@@ -72,8 +69,14 @@ namespace ACUtils
             isRunning = true;
             Task.Run(() =>
             {
-                _filter(action);
-                isRunning = false;
+                try
+                {
+                    _filter(action);
+                }
+                finally
+                {
+                    isRunning = false;
+                }
             });
             return new PTFC<T>(this);
         }
@@ -83,8 +86,14 @@ namespace ACUtils
             isRunning = true;
             Task.Run(() =>
             {
-                _filter(action);
-                isRunning = false;
+                try
+                {
+                    _filter(action);
+                }
+                finally
+                {
+                    isRunning = false;
+                }
             });
             return new PTFC<TO, T>(this);
         }
@@ -119,15 +128,20 @@ namespace ACUtils
             isRunning = true;
             Task.Run(() =>
             {
-                while (producer.IsRunningOrNotEmpty)
+                try
                 {
-                    if (producer.TryDequeue(out var t))
+                    while (producer.IsRunningOrNotEmpty)
                     {
-                        this.OutQueue.Enqueue(t);
+                        if (producer.TryDequeue(out var t))
+                        {
+                            OutQueue.Enqueue(t);
+                        }
                     }
                 }
-
-                isRunning = false;
+                finally
+                {
+                    isRunning = false;
+                }
             });
             return new PTFC<T>(this);
         }
@@ -177,8 +191,14 @@ namespace ACUtils
             isRunning = true;
             Task.Run(() =>
             {
-                _filterT(action);
-                isRunning = false;
+                try
+                {
+                    _filterT(action);
+                }
+                finally
+                {
+                    isRunning = false;
+                }
             });
 
             return new PTFC<TO>(this);
@@ -189,8 +209,14 @@ namespace ACUtils
             isRunning = true;
             Task.Run(() =>
             {
-                _filterT(action);
-                isRunning = false;
+                try
+                {
+                    _filterT(action);
+                }
+                finally
+                {
+                    isRunning = false;
+                }
             });
 
             return new PTFC<TT, TO>(this);
