@@ -1,4 +1,5 @@
 @Library('jenkins-libs') _
+def skipBuild = false
 pipeline {
     agent { node { label 'msbuild && linux' } }
     options {
@@ -11,14 +12,28 @@ pipeline {
         NUGET_APIKEY = credentials('nuget-api-key')
     }
     stages {
-        stage('restore') {
+		stage('short circuit') {
             steps {
                 script {
-                       sh 'nuget restore'
+    			    if (git_push_ssh.skipIfCommitterIs('jenkins')) {
+                        print("skip build")
+                        currentBuild.result = 'UNSTABLE'
+                        skipBuild = true
+                        return
+                    }
+                }
+            }
+        }
+        stage('restore') {
+            when { expression { !skipBuild  } }
+            steps {
+                script {
+                    sh 'nuget restore'
                 }
             }
         }
         stage('build') {
+            when { expression { !skipBuild  } }
             steps {
                 script {
                     env.NEW_VERSION = sh (
@@ -42,6 +57,7 @@ pipeline {
             }
         }
         stage('deploy') {
+            when { expression { !skipBuild  } }
             steps {
                 script {
                     archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
