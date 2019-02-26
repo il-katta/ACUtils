@@ -4,6 +4,7 @@ pipeline {
     agent { node { label 'msbuild && linux' } }
     options {
         disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '5'))
     }
     triggers {
         githubPush()
@@ -67,6 +68,11 @@ pipeline {
                     '''
                 }
             }
+        }
+    }
+    post { 
+        always { 
+            cleanWs()
         }
     }
 }
