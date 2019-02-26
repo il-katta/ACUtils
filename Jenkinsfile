@@ -33,10 +33,10 @@ pipeline {
                     '''
                     env.J_CREDS_IDS = 'repo-git'
                     env.J_GIT_CONFIG = 'false'
-                    env.J_USERNAME = 'jenkins agent'
+                    env.J_USERNAME = 'jenkins'
                     env.J_EMAIL = 'jenkins@s.loopback.it'
                     env.J_GIT_CONFIG = "true"
-                    env.BRANCH_NAME = "jenkins"
+                    env.BRANCH_NAME = "master"
                     git_push_ssh.pushSSH(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
                 }
             }
