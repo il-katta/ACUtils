@@ -1,7 +1,7 @@
-@Library('jenkins-libs') _
+library 'jenkins-libs'
 def skipBuild = false
 pipeline {
-    agent { node { label 'msbuild && linux' } }
+    agent { node { label 'linux && msbuild' } }
     options {
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -16,9 +16,11 @@ pipeline {
 		stage('short circuit') {
             steps {
                 script {
-    			    if (git_push_ssh.skipIfCommitterIs('jenkins')) {
+                    if (test_committer('jenkins')) {
                         print("skip build")
-                        currentBuild.result = 'UNSTABLE'
+                        currentBuild.result = currentBuild?.previousBuild?.result
+                        currentBuild.keepLog = false
+                        currentBuild.description = "skipped"
                         skipBuild = true
                         return
                     }
@@ -53,7 +55,7 @@ pipeline {
                     env.J_EMAIL = 'jenkins@s.loopback.it'
                     env.J_GIT_CONFIG = "true"
                     env.BRANCH_NAME = "master"
-                    git_push_ssh.pushSSH(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
+                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
                 }
             }
         }
