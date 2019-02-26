@@ -11,10 +11,21 @@ pipeline {
         NUGET_APIKEY = credentials('nuget-api-key')
     }
     stages {
+		stage('short circuit') {
+            steps {
+                script {
+    			    if (git_push_ssh.skipIfCommitterIs('jenkins')) {
+                        print("skip build")
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
         stage('restore') {
             steps {
                 script {
-                       sh 'nuget restore'
+                    sh 'nuget restore'
                 }
             }
         }
