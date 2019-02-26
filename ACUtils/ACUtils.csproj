@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.39</Version>
-    <PackageVersion>1.0.0.39</PackageVersion>
+    <Version>1.0.0.40</Version>
+    <PackageVersion>1.0.0.40</PackageVersion>
     <Description>Collezione di utility varie</Description>
     <NeutralLanguage>it</NeutralLanguage>
   </PropertyGroup>
