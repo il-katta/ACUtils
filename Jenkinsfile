@@ -1,5 +1,10 @@
 library 'jenkins-libs'
+@Library('jenkins-libs') import it.loopback.jenkins.Projedit
+
 def skipBuild = false
+
+def projedit = new it.loopback.jenkins.Projedit(this)
+
 pipeline {
     agent { node { label 'linux && msbuild' } }
     options {
@@ -39,11 +44,8 @@ pipeline {
             when { expression { !skipBuild  } }
             steps {
                 script {
-                    env.NEW_VERSION = sh (
-                        script: 'python projedit.py ACUtils/ACUtils.csproj',
-                        returnStdout: true
-                    ).trim()
-
+                    def new_version = projedit.projedit("netstandard", "ACUtils/ACUtils.csproj")
+                    env.NEW_VERSION = new_version
                     sh '''
                         rm -rf ACUtils/bin
                         dotnet build -c Release ACUtils/ACUtils.csproj
