@@ -10,7 +10,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
     triggers {
-        pollSCM('H/5 * * * *')
+        githubPush()
     }
     environment {
         NUGET_APIKEY = credentials('nuget-api-key')
