@@ -44,8 +44,9 @@ pipeline {
             when { expression { !skipBuild  } }
             steps {
                 script {
-                    def new_version = projedit.projedit("netstandard", "ACUtils/ACUtils.csproj")
-                    env.NEW_VERSION = new_version
+                    
+                    env.NEW_VERSION = projedit.projedit("netstandard", "ACUtils/ACUtils.csproj")
+
                     sh '''
                         rm -rf ACUtils/bin
                         dotnet build -c Release ACUtils/ACUtils.csproj
@@ -57,7 +58,7 @@ pipeline {
                     env.J_EMAIL = 'jenkins@s.loopback.it'
                     env.J_GIT_CONFIG = "true"
                     env.BRANCH_NAME = "master"
-                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: ".");
+                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: "ACUtils/ACUtils.csproj");
                 }
             }
         }
