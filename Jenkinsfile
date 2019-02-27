@@ -1,8 +1,6 @@
 library 'jenkins-libs'
 @Library('jenkins-libs') import it.loopback.jenkins.Projedit
 
-def skipBuild = false
-
 def projedit = new it.loopback.jenkins.Projedit(this)
 
 pipeline {
@@ -12,28 +10,25 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
     triggers {
-        githubPush()
+        pollSCM('H/5 * * * *')
     }
     environment {
         NUGET_APIKEY = credentials('nuget-api-key')
     }
     stages {
 		stage('short circuit') {
+            when { expression { test_committer('jenkins')  } }
             steps {
                 script {
-                    if (test_committer('jenkins')) {
-                        print("skip build")
-                        currentBuild.result = currentBuild?.previousBuild?.result
-                        currentBuild.keepLog = false
-                        currentBuild.description = "skipped"
-                        skipBuild = true
-                        return
-                    }
+                    print("skip build")
+                    currentBuild.result = currentBuild?.previousBuild?.result
+                    currentBuild.keepLog = false
+                    currentBuild.description = "skipped"
                 }
             }
         }
         stage('restore') {
-            when { expression { !skipBuild  } }
+            when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
                     sh 'nuget restore'
@@ -41,10 +36,9 @@ pipeline {
             }
         }
         stage('build') {
-            when { expression { !skipBuild  } }
+            when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
-                    
                     env.NEW_VERSION = projedit.projedit("netstandard", "ACUtils/ACUtils.csproj")
 
                     sh '''
@@ -52,6 +46,13 @@ pipeline {
                         dotnet build -c Release ACUtils/ACUtils.csproj
                         dotnet pack -c Release --include-symbols -p:SymbolPackageFormat=snupkg ACUtils/ACUtils.csproj
                     '''
+                }
+            }
+        }
+        stage('push') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
                     env.J_CREDS_IDS = 'repo-git'
                     env.J_GIT_CONFIG = 'false'
                     env.J_USERNAME = 'jenkins'
@@ -63,7 +64,7 @@ pipeline {
             }
         }
         stage('deploy') {
-            when { expression { !skipBuild  } }
+            when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
                     archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
