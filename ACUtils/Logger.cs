@@ -283,47 +283,47 @@ namespace ACUtils
 
         void ILogger.Debug(string message)
         {
-            throw new NotImplementedException();
+            this.Debug(message);
         }
 
         void ILogger.Debug(string messageTemplate, params object[] propertyValues)
         {
-            throw new NotImplementedException();
+            this.Debug(messageTemplate);
         }
 
         void ILogger.Information(string message)
         {
-            throw new NotImplementedException();
+            this.Information(message);
         }
 
         void ILogger.Information(string messageTemplate, params object[] propertyValues)
         {
-            throw new NotImplementedException();
+            this.Information(messageTemplate);
         }
 
         void ILogger.Warning(string message)
         {
-            throw new NotImplementedException();
+            this.Warning(message);
         }
 
         void ILogger.Warning(string messageTemplate, params object[] propertyValues)
         {
-            throw new NotImplementedException();
+            this.Warning(messageTemplate);
         }
 
         void ILogger.Error(string message)
         {
-            throw new NotImplementedException();
+            this.Error(message);
         }
 
         void ILogger.Error(string messageTemplate, params object[] propertyValues)
         {
-            throw new NotImplementedException();
+            this.Error(messageTemplate);
         }
 
         void ILogger.Exception(Exception exception)
         {
-            throw new NotImplementedException();
+            this.Exception(exception);
         }
         #endregion
 
