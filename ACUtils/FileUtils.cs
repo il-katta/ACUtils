@@ -218,7 +218,17 @@ namespace ACUtils
         /// <param name="ex"></param>
         public static void WriteException(string filePath, Exception ex)
         {
-            File.WriteAllText(filePath, ex.ToString());
+            WriteText(filePath, ex.ToString());
+        }
+
+        /// <summary>
+        /// scrive il contenuto della stringa nel file
+        /// </summary>
+        /// <param name="filePath">persorso del file di destinazione</param>
+        /// <param name="text">testo da scrivere su file</param>
+        public static void WriteText(string filePath, string text)
+        {
+            File.WriteAllText(filePath, text);
         }
 
         /// <summary>

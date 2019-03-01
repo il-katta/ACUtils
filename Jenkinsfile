@@ -9,9 +9,7 @@ pipeline {
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
-    triggers {
-        githubPush()
-    }
+    triggers { pollSCM('H/2 * * * *') }
     environment {
         NUGET_APIKEY = credentials('nuget-api-key')
     }
