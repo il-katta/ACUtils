@@ -40,7 +40,7 @@ pipeline {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
-                    env.NEW_VERSION = projedit.projedit("netstandard", "ACUtils/ACUtils.csproj")
+                    env.NEW_VERSION = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
 
                     sh '''
                         rm -rf ACUtils/bin

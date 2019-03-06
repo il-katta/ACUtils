@@ -390,7 +390,7 @@ namespace ACUtils
                 from p in queryParams select $"DECLARE {p.Key} VARCHAR(250) = {ValueToString(p.Value)}"
             );
             string callerStack = GetCallerStack(4, 3);
-            logger.Information($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+            logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
         private void WriteLog(string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
@@ -405,7 +405,7 @@ namespace ACUtils
                     from p in queryParams select $"DECLARE {p.Key} {SqlTypeToString(p.Value.Key)} = {ValueToString(p.Value.Value)}"
             );
             string callerStack = GetCallerStack(4, 3);
-            logger.Information($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+            logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
         private string GetCallerStack(int start, int count)
