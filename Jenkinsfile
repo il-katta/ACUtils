@@ -10,7 +10,7 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5'))
     }
     triggers { 
-		pollSCM(scmpoll_spec: 'H */2 * * *', ignorePostCommitHooks: true)
+		//pollSCM(scmpoll_spec: 'H/2 * * * *', ignorePostCommitHooks: true)
 		githubPush()
 	}
     environment {
