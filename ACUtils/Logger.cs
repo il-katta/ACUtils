@@ -43,7 +43,7 @@ namespace ACUtils
         /// an attempt will be made to get the name of the calling process.</param>
         public void Debug(string message, string source = "", int eventID = 0)
         {
-            if (debugLoggingEnabled == false) { return; }
+            if (debugLoggingEnabled) { return; }
 
             Log(message, EventLogEntryType.Information, source, eventID);
         }
