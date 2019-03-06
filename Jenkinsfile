@@ -28,25 +28,20 @@ pipeline {
                 }
             }
         }
-        stage('restore') {
-            when { expression { !test_committer('jenkins')  } }
-            steps {
-                script {
-                    sh 'nuget restore'
-                }
-            }
-        }
         stage('build') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
+                    // increase package version
                     env.NEW_VERSION = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
-
-                    sh '''
-                        rm -rf ACUtils/bin
-                        dotnet build -c Release ACUtils/ACUtils.csproj
-                        dotnet pack -c Release --include-symbols -p:SymbolPackageFormat=snupkg ACUtils/ACUtils.csproj
-                    '''
+                    // nuget restore
+                    nuget_download 'ACUtils/ACUtils.csproj'
+                    // build
+                    build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils/bin/Release/ACUtils.*.nupkg', name: 'nupkg'
                 }
             }
         }
@@ -61,17 +56,11 @@ pipeline {
                     env.J_GIT_CONFIG = "true"
                     env.BRANCH_NAME = "master"
                     git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: "ACUtils/ACUtils.csproj");
-                }
-            }
-        }
-        stage('deploy') {
-            when { expression { !test_committer('jenkins')  } }
-            steps {
-                script {
-                    archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
+                    
+                    
+                    unstash 'nupkg'
                     sh '''
                         dotnet nuget push ACUtils/bin/Release/ACUtils.*.nupkg -k "${NUGET_APIKEY}" -s https://api.nuget.org/v3/index.json
-                        mv ACUtils/bin/Release/ACUtils.*.nupkg .
                     '''
                 }
             }

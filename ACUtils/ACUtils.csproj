@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -16,11 +16,18 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
     <PackageReference Include="Serilog" Version="2.8.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
-    <PackageReference Include="System.Diagnostics.EventLog" Version="4.5.0" />
     <PackageReference Include="System.IO" Version="4.3.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.5.0" />
     <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Transactions" Condition="'$(TargetFramework)' == 'net46'" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Diagnostics.EventLog" Version="4.5.0" />
   </ItemGroup>
 
 </Project>
