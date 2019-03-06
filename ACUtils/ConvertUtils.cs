@@ -20,7 +20,32 @@ namespace ACUtils
                 return null;
             }
         }
+        /// <summary>
+        /// converte una stringa in oggetto DateTime utilizzando il formato impostato nella configurazione del sistema
+        /// </summary>
+        /// <param name="dateString"></param>
+        /// <returns></returns>
+        public static DateTime? ToDateTimeLocal(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+            {
+                return null;
+            }
+            try
+            {
+                return DateTime.Parse(dateString, System.Globalization.DateTimeFormatInfo.CurrentInfo);
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
+        /// <summary>
+        /// converte una stringa in oggetto DateTime utilizzando il formato standard
+        /// </summary>
+        /// <param name="dateString"></param>
+        /// <returns></returns>
         public static DateTime? ToDateTime(string dateString)
         {
             if (string.IsNullOrEmpty(dateString))
@@ -37,11 +62,33 @@ namespace ACUtils
             }
         }
 
+        /// <summary>
+        /// converte la stringa in decimale utilizzando la configurazione standard
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static decimal? ToDecimal(string str)
         {
             try
             {
                 return Convert.ToDecimal(str, System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// converte la stringa in decimale utilizzando il formato impostato nella configurazione del sistema
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static decimal? ToDecimalLocal(string str)
+        {
+            try
+            {
+                return Convert.ToDecimal(str, System.Globalization.CultureInfo.CurrentCulture);
             }
             catch
             {
