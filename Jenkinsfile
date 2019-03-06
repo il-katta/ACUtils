@@ -4,7 +4,7 @@ library 'jenkins-libs'
 def projedit = new it.loopback.jenkins.Projedit(this)
 
 pipeline {
-    agent { node { label 'linux && msbuild' } }
+    agent { node { label 'msbuild' } }
     options {
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -13,9 +13,6 @@ pipeline {
 		//pollSCM(scmpoll_spec: 'H/2 * * * *', ignorePostCommitHooks: true)
 		githubPush()
 	}
-    environment {
-        NUGET_APIKEY = credentials('nuget-api-key')
-    }
     stages {
 		stage('short circuit') {
             when { expression { test_committer('jenkins')  } }
@@ -35,13 +32,14 @@ pipeline {
                     // increase package version
                     env.NEW_VERSION = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
                     // nuget restore
-                    nuget_download 'ACUtils/ACUtils.csproj'
+                    nuget.restore('ACUtils/ACUtils.csproj')
+                    build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release', target:'Restore'
                     // build
                     build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release'
                     // archive artifacts
                     archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils/bin/Release/ACUtils.*.nupkg', name: 'nupkg'
+                    stash includes: 'ACUtils/bin/Release/ACUtils.*.nupkg,ACUtils/bin/Release/ACUtils.*.snupkg', name: 'nupkg'
                 }
             }
         }
@@ -57,11 +55,9 @@ pipeline {
                     env.BRANCH_NAME = "master"
                     git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: "ACUtils/ACUtils.csproj");
                     
-                    
                     unstash 'nupkg'
-                    sh '''
-                        dotnet nuget push ACUtils/bin/Release/ACUtils.*.nupkg -k "${NUGET_APIKEY}" -s https://api.nuget.org/v3/index.json
-                    '''
+                    
+                    nuget.push('nuget-api-key', 'ACUtils/bin/Release/ACUtils.*.nupkg')
                 }
             }
         }
