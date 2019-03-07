@@ -37,7 +37,7 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg,ACUtils/bin/Release/ACUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
                     stash includes: 'ACUtils/bin/Release/ACUtils.*.nupkg,ACUtils/bin/Release/ACUtils.*.snupkg', name: 'nupkg'
                 }
