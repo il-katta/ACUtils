@@ -59,6 +59,7 @@ namespace ACUtils
                     }
                     catch (DiscartException)
                     {
+                        // ignore - elemento scartato
                     }
                 }
             }
@@ -181,6 +182,7 @@ namespace ACUtils
                     }
                     catch (DiscartException)
                     {
+                        // ignore - elemento scartato
                     }
                 }
             }

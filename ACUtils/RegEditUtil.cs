@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Win32;
@@ -83,7 +85,7 @@ namespace ACUtils
 
         public void Write(string keyname, string value)
         {
-            _baseKey.SetValue(keyname, value);
+            _baseKey.SetValue($"{_regKey}\\{keyname}", value);
         }
 
         public string Read(string keyname, string subKeyname)
@@ -119,7 +121,7 @@ namespace ACUtils
             {
                 using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
                 {
-                    return subKey?.GetValue(subKeyname, null) != null;
+                    return Exists(subKey, subKeyname);
                 }
             }
             catch (Exception)
@@ -130,14 +132,42 @@ namespace ACUtils
 
         public bool Exists(string keyname)
         {
+            return Exists(_baseKey, $"{_regKey}\\{keyname}");
+        }
+
+        public bool Exists(RegistryKey regKey, string subKeyname)
+        {
             try
             {
-                return _baseKey?.GetValue($"{_regKey}\\{keyname}", null) != null;
+                    return regKey?.GetValue(subKeyname, null) != null;
             }
             catch (Exception)
             {
                 return false;
             }
+        }
+
+        public List<string> List()
+        {
+            return List(_baseKey);
+        }
+
+        public List<string> List(string keyname)
+        {
+            using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+            {
+                return List(subKey);
+            }
+        }
+
+
+        public List<string> List(RegistryKey regKey)
+        {
+            return (
+                    from k in regKey?.GetValueNames()
+                    select k.Remove(0, this._regKey.Length).TrimStart('\\')
+                ).ToList();
+            return new List<string>(regKey?.GetValueNames());
         }
     }
 }
