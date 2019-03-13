@@ -112,7 +112,7 @@ namespace ACUtils
             {
                 using (RegistryKey subKey = GetRegKey(keyname))
                 {
-                    return Read(subKey, keyname);
+                    return Read(subKey, subKeyname);
                 }
             }
             catch (Exception)
@@ -125,7 +125,7 @@ namespace ACUtils
         {
             try
             {
-                using (RegistryKey subKey = CreateRegistryKey())
+                using (RegistryKey subKey = GetRegKey())
                 {
                     return Read(subKey, keyname);
                 }
@@ -169,6 +169,11 @@ namespace ACUtils
             return Exists(_baseKey, $"{_regKey}\\{keyname}");
         }
 
+        public bool RegKeyExists(string subkey)
+        {
+            return ListKeys().Contains(subkey);
+        }
+
         public bool Exists(RegistryKey regKey, string subKeyname)
         {
             try
@@ -183,7 +188,7 @@ namespace ACUtils
 
         public List<string> List()
         {
-            using (RegistryKey subKey = CreateRegistryKey())
+            using (RegistryKey subKey = GetRegKey())
             {
                 return List(subKey);
             }
@@ -202,7 +207,7 @@ namespace ACUtils
             return _baseKey.OpenSubKey($"{_regKey}\\{name}", false);
         }
 
-        public RegistryKey CreateRegistryKey()
+        public RegistryKey GetRegKey()
         {
             return _baseKey.OpenSubKey(_regKey, false);
         }
@@ -220,7 +225,7 @@ namespace ACUtils
 
         public List<string> ListKeys()
         {
-            using (RegistryKey subKey = CreateRegistryKey())
+            using (RegistryKey subKey = GetRegKey())
             {
                 return ListKeys(subKey);
             }

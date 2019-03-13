@@ -72,5 +72,20 @@ namespace Tests
 
             Assert.IsTrue(value.Equals(regedit.Read("RegEditUtil_Read")));
         }
+
+
+        [Test]
+        public void RegEditUtil_ReadSubkey()
+        {
+            string subkey = "subkey";
+            string keyname = "RegEditUtil_Read";
+            regedit.CreateRegKey(subkey);
+            string value = "1234abcde";
+            regedit.Write(subkey, keyname, value);
+            Assert.IsTrue(regedit.RegKeyExists(subkey));
+            Assert.IsTrue(regedit.Exists(subkey, keyname));
+            var read = regedit.Read(subkey, keyname);
+            Assert.IsTrue(value.Equals(read));
+        }
     }
 }
