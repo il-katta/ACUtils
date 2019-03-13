@@ -1,17 +1,13 @@
 ﻿using ACUtils;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tests
 {
     [TestFixture]
     public class RegEditUtilTest
     {
-        RegEditUtil regedit;
+        private RegEditUtil regedit;
         [SetUp]
         public void Setup()
         {
@@ -23,26 +19,45 @@ namespace Tests
         [Test]
         public void RegEditUtil_Create()
         {
-            var value = "1234abcde";
+            string value = "1234abcde";
 
             regedit.Write("RegEditUtil_Create", value);
-            var readed = regedit.Read("RegEditUtil_Create");
+            string readed = regedit.Read("RegEditUtil_Create");
             Assert.IsTrue(value.Equals(readed));
         }
 
         [Test]
         public void RegEditUtil_List()
         {
-            var cVals = new List<string>()
+            List<string> cVals = new List<string>()
             {
                 "a", "b", "c"
             };
-            foreach (var v in cVals)
+            foreach (string v in cVals)
             {
                 regedit.Write(v, v);
             }
-            var list = regedit.List();
-            foreach (var v in cVals)
+            List<string> list = regedit.List();
+            foreach (string v in cVals)
+            {
+                Assert.IsTrue(list.Contains(v));
+            }
+        }
+
+
+        [Test]
+        public void RegEditUtil_ListKeys()
+        {
+            List<string> cVals = new List<string>()
+            {
+                "q", "w", "e"
+            };
+            foreach (string v in cVals)
+            {
+                Microsoft.Win32.RegistryKey k = regedit.CreateRegKey(v);
+            }
+            List<string> list = regedit.ListKeys();
+            foreach (string v in cVals)
             {
                 Assert.IsTrue(list.Contains(v));
             }
@@ -51,7 +66,7 @@ namespace Tests
         [Test]
         public void RegEditUtil_Read()
         {
-            var value = "1234abcde";
+            string value = "1234abcde";
 
             regedit.Write("RegEditUtil_Read", value);
 

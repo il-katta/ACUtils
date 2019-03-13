@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -27,12 +26,28 @@ namespace ACUtils
 
         public void Init()
         {
+            var key = CreateRegKey();
+            key?.Close();
+        }
+
+
+        public RegistryKey CreateRegKey(string regKeyName="")
+        {
+            if (string.IsNullOrEmpty(regKeyName))
+            {
+                regKeyName = _regKey;
+            }
+            else
+            {
+                regKeyName = $"{this._regKey}\\{regKeyName}";
+            }
+            
             // creazione chiave
-            _baseKey?.CreateSubKey(_regKey ?? "", RegistryKeyPermissionCheck.ReadWriteSubTree)?.Close();
+            _baseKey?.CreateSubKey(regKeyName ?? "", RegistryKeyPermissionCheck.ReadWriteSubTree)?.Close();
 
             // apertura con permessi per modifica permesssi
             RegistryKey key = _baseKey?.OpenSubKey(
-                _regKey ?? "",
+                regKeyName,
                 RegistryKeyPermissionCheck.ReadWriteSubTree,
                 RegistryRights.ChangePermissions | RegistryRights.ReadKey | RegistryRights.WriteKey |
                 RegistryRights.FullControl
@@ -71,7 +86,7 @@ namespace ACUtils
                 }
             }
 
-            key?.Close();
+            return key;
         }
 
         public void Write(string keyname, string subkeyname, string value)
@@ -95,7 +110,7 @@ namespace ACUtils
         {
             try
             {
-                using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+                using (RegistryKey subKey = GetRegKey(keyname))
                 {
                     return Read(subKey, keyname);
                 }
@@ -110,7 +125,7 @@ namespace ACUtils
         {
             try
             {
-                using (RegistryKey subKey = _baseKey.OpenSubKey(_regKey, false))
+                using (RegistryKey subKey = CreateRegistryKey())
                 {
                     return Read(subKey, keyname);
                 }
@@ -138,7 +153,7 @@ namespace ACUtils
         {
             try
             {
-                using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+                using (RegistryKey subKey = GetRegKey(keyname))
                 {
                     return Exists(subKey, subKeyname);
                 }
@@ -168,7 +183,7 @@ namespace ACUtils
 
         public List<string> List()
         {
-            using (RegistryKey subKey = _baseKey.OpenSubKey(_regKey, false))
+            using (RegistryKey subKey = CreateRegistryKey())
             {
                 return List(subKey);
             }
@@ -176,12 +191,21 @@ namespace ACUtils
 
         public List<string> List(string keyname)
         {
-            using (RegistryKey subKey = _baseKey.OpenSubKey($"{_regKey}\\{keyname}", false))
+            using (RegistryKey subKey = GetRegKey(keyname))
             {
                 return List(subKey);
             }
         }
 
+        public RegistryKey GetRegKey(string name)
+        {
+            return _baseKey.OpenSubKey($"{_regKey}\\{name}", false);
+        }
+
+        public RegistryKey CreateRegistryKey()
+        {
+            return _baseKey.OpenSubKey(_regKey, false);
+        }
 
         public List<string> List(RegistryKey regKey)
         {
@@ -193,5 +217,27 @@ namespace ACUtils
             */
             return new List<string>(regKey?.GetValueNames());
         }
+
+        public List<string> ListKeys()
+        {
+            using (RegistryKey subKey = CreateRegistryKey())
+            {
+                return ListKeys(subKey);
+            }
+        }
+
+        public List<string> ListKeys(string keyname)
+        {
+            using (RegistryKey subKey = GetRegKey(keyname))
+            {
+                return ListKeys(subKey);
+            }
+        }
+
+        public List<string> ListKeys(RegistryKey regKey)
+        {
+            return new List<string>(regKey?.GetSubKeyNames());
+        }
+
     }
 }
