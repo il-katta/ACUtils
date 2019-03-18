@@ -481,12 +481,14 @@ namespace ACUtils
             {
                 ftpUrl = $"{ftpUrl}{ftpPath}";
             }
-            
+
             // aggiunge il nome del file
             ftpUrl = System.IO.Path.Combine(ftpUrl, System.IO.Path.GetFileName(localFilePath));
 
             System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
             request.UsePassive = usePassive;
+            request.UseBinary = true;
+            request.KeepAlive = false;
             request.Method = System.Net.WebRequestMethods.Ftp.UploadFile;
             request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
 
@@ -503,6 +505,67 @@ namespace ACUtils
             using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
             {
                 return response;
+            }
+        }
+
+
+        public static System.Net.FtpWebResponse FtpDownload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        {
+            // aggiunge la directory di upload se specificata
+            if (!string.IsNullOrEmpty(ftpPath))
+            {
+                ftpUrl = $"{ftpUrl}{ftpPath}";
+            }
+
+            System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
+            request.UsePassive = usePassive;
+            request.UseBinary = true;
+            request.KeepAlive = false;
+            request.Method = System.Net.WebRequestMethods.Ftp.DownloadFile;
+            request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
+
+            using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
+            {
+                using (Stream responseStream = response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(responseStream))
+                    {
+                        using (StreamWriter destination = new StreamWriter(localFilePath))
+                        {
+                            destination.Write(reader.ReadToEnd());
+                            destination.Flush();
+                        }
+                    }
+                }
+                return response;
+            }
+        }
+
+        public static string FtpList(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        {
+            // aggiunge la directory di upload se specificata
+            if (!string.IsNullOrEmpty(ftpPath))
+            {
+                ftpUrl = $"{ftpUrl}{ftpPath}";
+            }
+
+            System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
+            request.UsePassive = usePassive;
+            request.UseBinary = true;
+            request.KeepAlive = false;
+            request.Method = System.Net.WebRequestMethods.Ftp.ListDirectoryDetails;
+            request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
+
+
+            using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
+            {
+                using(Stream responseStream = response.GetResponseStream())
+                {
+                    using(StreamReader reader = new StreamReader(responseStream))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
             }
         }
     }

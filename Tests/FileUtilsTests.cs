@@ -1,22 +1,27 @@
-using System;
-using System.Threading;
-using NUnit.Framework;
 using ACUtils;
+using NUnit.Framework;
+using System;
 
 namespace Tests
 {
+    [TestFixture]
     public class FileUtilsTests
     {
         [SetUp]
         public void Setup()
         {
+            string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+            UriBuilder uri = new UriBuilder(codeBase);
+            string path = Uri.UnescapeDataString(uri.Path);
+            path = System.IO.Path.GetDirectoryName(path);
+            System.IO.Directory.SetCurrentDirectory(path);
         }
 
         [Test]
         public void IsFileTest()
         {
             string filePath;
-            using (var tmpFilePath = FileUtils.GetTempFilePathWithExtension(".test"))
+            using (DString tmpFilePath = FileUtils.GetTempFilePathWithExtension(".test"))
             {
                 Assert.IsNotNull(tmpFilePath);
                 Assert.IsNotNull(tmpFilePath.Value);
@@ -33,7 +38,7 @@ namespace Tests
         [Test]
         public void IsDirectoryTest()
         {
-            using (var tmpFilePath = FileUtils.GetTempFilePathWithExtension(".test"))
+            using (DString tmpFilePath = FileUtils.GetTempFilePathWithExtension(".test"))
             {
                 Assert.IsNotNull(tmpFilePath);
                 Assert.IsNotNull(tmpFilePath.Value);
@@ -48,7 +53,7 @@ namespace Tests
         public void DisposableFile()
         {
             string filePath;
-            using (var dFile = FileUtils.GetTempFilePathWithExtension(".test"))
+            using (DString dFile = FileUtils.GetTempFilePathWithExtension(".test"))
             {
                 System.IO.File.WriteAllText(dFile.Value, "test");
                 Assert.IsTrue(FileUtils.IsFile(dFile.Value));
@@ -63,14 +68,14 @@ namespace Tests
         public void DisposableDirectory()
         {
             string dirPath;
-            using (var dDir = FileUtils.GetTempDirPath())
+            using (DString dDir = FileUtils.GetTempDirPath())
             {
                 Assert.IsTrue(FileUtils.AssertIsDirectory(dDir.Value));
                 Assert.IsTrue(FileUtils.IsDirectory(dDir.Value));
                 dirPath = dDir.Value;
 
-                var subDirectory = System.IO.Path.Combine(dDir.Value, @"test\test\test");
-                var subDirectoryFile = System.IO.Path.Combine(subDirectory, @"text.txt");
+                string subDirectory = System.IO.Path.Combine(dDir.Value, @"test\test\test");
+                string subDirectoryFile = System.IO.Path.Combine(subDirectory, @"text.txt");
                 FileUtils.AssertIsDirectory(subDirectory);
                 System.IO.File.WriteAllText(subDirectoryFile, "test");
             }
@@ -86,7 +91,7 @@ namespace Tests
             string data = "1234567890";
             string expected_checksum = "e807f1fcf82d132f9bb018ca6738a19f";
 
-            using (var tmpFile = FileUtils.GetTempFilePathWithExtension(".test"))
+            using (DString tmpFile = FileUtils.GetTempFilePathWithExtension(".test"))
             {
                 System.IO.File.WriteAllText(tmpFile.Value, data);
 
@@ -96,16 +101,59 @@ namespace Tests
         }
 
         [Test]
-        public void FtpUpload()
+        [TestCase("EmbeddedResourceFile.txt")]
+        [TestCase(null)]
+        public void FtpUpload(string ftpFile)
         {
+            if (string.IsNullOrEmpty(ftpFile))
+            {
+                ftpFile = Uri.UnescapeDataString(new UriBuilder(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Path);
+            }
             FileUtils.FtpUpload(
-                Uri.UnescapeDataString(new UriBuilder(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Path),
+                ftpFile,
                 "ftp://localhost:21/",
                 "/",
                 "",
                 "",
                 false
             );
+        }
+
+        [Test]
+        [TestCase(null)]
+        [TestCase("EmbeddedResourceFile.txt")]
+        public void FtpDownload(string filePath)
+        {
+            // se il file non è specificato, utilizza come file il file dell'assembly di questo progetto
+            if (string.IsNullOrEmpty(filePath))
+            {
+                filePath = Uri.UnescapeDataString(new UriBuilder(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Path);
+            }
+
+            FtpUpload(filePath);
+            using (DString download_path = FileUtils.GetTempFilePathWithExtension(".dat"))
+            {
+                FileUtils.FtpDownload(
+                    download_path.Value,
+                    "ftp://localhost:21/",
+                    System.IO.Path.GetFileName(filePath),
+                    "",
+                    "",
+                    false
+                );
+
+                Assert.IsTrue(FileUtils.IsFile(download_path.Value));
+                var list = FileUtils.FtpList(
+                    "ftp://localhost:21/",
+                    "/",
+                    "",
+                    "",
+                    false);
+                Assert.AreEqual(
+                    expected: FileUtils.FileChecksum(filePath),
+                    actual: FileUtils.FileChecksum(download_path.Value)
+                );
+            }
         }
     }
 }
