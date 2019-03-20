@@ -594,7 +594,7 @@ namespace ACUtils
             }
         }
 
-        public static List<string> FtpList(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        public static List<string> FtpList(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false, string searchRegEx = ".*")
         {
             System.Net.FtpWebRequest request = FtpRequest(
                 ftpUrl: ftpUrl,
@@ -614,7 +614,11 @@ namespace ACUtils
                         List<string> lst_strFiles = new List<string>();
                         while (!reader.EndOfStream)
                         {
-                            lst_strFiles.Add(reader.ReadLine());
+                            var line = reader.ReadLine();
+                            if (Regex.Match(line, searchRegEx).Success)
+                            {
+                                lst_strFiles.Add(line);
+                            }
                         }
                         return lst_strFiles;
                     }
