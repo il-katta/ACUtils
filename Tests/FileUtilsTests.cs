@@ -117,6 +117,18 @@ namespace Tests
                 "",
                 false
             );
+
+            System.Collections.Generic.List<string> listFtpFiles = FileUtils.FtpList(
+                "ftp://localhost:21/",
+                "/",
+                "",
+                "",
+                false
+            );
+
+            string fileName = System.IO.Path.GetFileName(ftpFile);
+
+            Assert.IsTrue(listFtpFiles.Contains(fileName));
         }
 
         [Test]
@@ -143,7 +155,7 @@ namespace Tests
                 );
 
                 Assert.IsTrue(FileUtils.IsFile(download_path.Value));
-                var list = FileUtils.FtpList(
+                System.Collections.Generic.List<string> list = FileUtils.FtpList(
                     "ftp://localhost:21/",
                     "/",
                     "",
@@ -154,6 +166,51 @@ namespace Tests
                     actual: FileUtils.FileChecksum(download_path.Value)
                 );
             }
+        }
+
+
+        [Test]
+        public void FtpFtpDelete()
+        {
+            Assert.IsFalse(
+                FileUtils.FtpDelete(
+                    "ftp://localhost:21/",
+                    "file_not_found.txt",
+                    "",
+                    "",
+                    false
+                )
+            );
+
+            System.Collections.Generic.List<string> listFtpFiles = FileUtils.FtpList(
+                "ftp://localhost:21/",
+                "/",
+                "",
+                "",
+                false
+            );
+            foreach (string ftpFile in listFtpFiles)
+            {
+                Assert.IsTrue(
+                    FileUtils.FtpDelete(
+                        "ftp://localhost:21/",
+                        ftpFile,
+                        "",
+                        "",
+                        false
+                    )
+                );
+            }
+
+            listFtpFiles = FileUtils.FtpList(
+                "ftp://localhost:21/",
+                "/",
+                "",
+                "",
+                false
+            );
+
+            Assert.IsTrue(listFtpFiles.Count == 0);
         }
     }
 }

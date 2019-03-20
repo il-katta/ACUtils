@@ -16,15 +16,7 @@ namespace ACUtils
     /// </summary>
     public static class FileUtils
     {
-        /// <summary>
-        /// codifica del contenuto di un file in Base64
-        /// </summary>
-        /// <param name="filePath">percorso assoluto file</param>
-        /// <returns>codifica BASE64 del contenuto del file</returns>
-        public static string FileToBase64(string filePath)
-        {
-            return Convert.ToBase64String(File.ReadAllBytes(filePath));
-        }
+        #region test
 
         /// <summary>
         /// test permessi di lettura dei file
@@ -81,9 +73,16 @@ namespace ACUtils
 
         public static bool IsNotEmptyDirectory(string sPath)
         {
-            if (!IsDirectory(sPath)) return false;
+            if (!IsDirectory(sPath))
+            {
+                return false;
+            }
+
             return ListFiles(sPath).Any();
         }
+        #endregion
+
+        #region IO
 
         /// <summary>
         /// sposta un file
@@ -137,43 +136,6 @@ namespace ACUtils
         }
 
         /// <summary>
-        /// applica le ACL del file sPathSrc al file sPathDest
-        /// </summary>
-        /// <param name="sPathSrc">path del file/directory da cui copiare le ACL</param>
-        /// <param name="sPathDest">path del file/cartella a cui applicare le ACL</param>
-        /// <returns></returns>
-        public static bool CopyAcl(string sPathSrc, string sPathDest, bool throwException = false)
-        {
-            try
-            {
-                System.Security.AccessControl.FileSecurity directoryAcl = new FileInfo(sPathSrc).GetAccessControl();
-                directoryAcl.SetAccessRuleProtection(true, true);
-                new FileInfo(sPathDest).SetAccessControl(directoryAcl);
-                return true;
-            }
-            catch (Exception e)
-            {
-                if (throwException)
-                {
-                    throw e;
-                }
-                return false;
-            }
-        }
-        /// <summary>
-        /// applica le ACL della cartella in cui è contenuto il file al file
-        /// </summary>
-        /// <param name="sPathDest"></param>
-        /// <param name="throwException"></param>
-        /// <returns>esito corretta applicazione delle acl</returns>
-        public static bool CopyAcl(string sPathDest, bool throwException = false)
-        {
-            string sPathSrc = Path.GetDirectoryName(sPathDest);
-            return CopyAcl(sPathSrc, sPathDest, throwException);
-        }
-
-
-        /// <summary>
         /// crea la directory, se non esiste, copiando le ACL dalla directory padre
         /// </summary>
         /// <param name="directoryPath"></param>
@@ -211,6 +173,50 @@ namespace ACUtils
             }
         }
 
+        #endregion
+
+        #region acl
+
+        /// <summary>
+        /// applica le ACL del file sPathSrc al file sPathDest
+        /// </summary>
+        /// <param name="sPathSrc">path del file/directory da cui copiare le ACL</param>
+        /// <param name="sPathDest">path del file/cartella a cui applicare le ACL</param>
+        /// <returns></returns>
+        public static bool CopyAcl(string sPathSrc, string sPathDest, bool throwException = false)
+        {
+            try
+            {
+                System.Security.AccessControl.FileSecurity directoryAcl = new FileInfo(sPathSrc).GetAccessControl();
+                directoryAcl.SetAccessRuleProtection(true, true);
+                new FileInfo(sPathDest).SetAccessControl(directoryAcl);
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (throwException)
+                {
+                    throw e;
+                }
+                return false;
+            }
+        }
+        /// <summary>
+        /// applica le ACL della cartella in cui è contenuto il file al file
+        /// </summary>
+        /// <param name="sPathDest"></param>
+        /// <param name="throwException"></param>
+        /// <returns>esito corretta applicazione delle acl</returns>
+        public static bool CopyAcl(string sPathDest, bool throwException = false)
+        {
+            string sPathSrc = Path.GetDirectoryName(sPathDest);
+            return CopyAcl(sPathSrc, sPathDest, throwException);
+        }
+
+        #endregion
+
+        #region write
+
         /// <summary>
         /// scrive l'eccezione su file
         /// </summary>
@@ -231,30 +237,9 @@ namespace ACUtils
             File.WriteAllText(filePath, text);
         }
 
-        /// <summary>
-        /// ritorna la lista di file .xml nella directory
-        /// </summary>
-        /// <param name="directoryPath"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> ListXmlFiles(string directoryPath)
-        {
-            AssertIsDirectory(directoryPath);
+        #endregion
 
-            return (
-                from filePath in Directory.EnumerateFiles(directoryPath, "*.xml", SearchOption.TopDirectoryOnly)
-                where FileReadable(filePath)
-                select filePath
-             ).ToList();
-            /*
-            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.xml", SearchOption.TopDirectoryOnly))
-            {
-                if (FileReadable(filePath))
-                {
-                    yield return filePath;
-                }
-            }
-            */
-        }
+        #region convert
 
         /// <summary>
         /// converte un file xml in html applicandogli il foglio di stile
@@ -288,6 +273,10 @@ namespace ACUtils
             return doutFile;
         }
 
+        #endregion
+
+        #region temp dir
+
         public static DString GetTempFilePathWithExtension(string extension)
         {
             string path = Path.GetTempPath();
@@ -305,12 +294,42 @@ namespace ACUtils
             return new DString(path);
         }
 
-        public static IEnumerable<string> ListFiles(string folderPath)
+        #endregion
+
+        #region list
+
+        public static IEnumerable<string> ListFiles(string folderPath, string searchPattern = "*.*")
         {
-            return Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories);
+            return Directory.EnumerateFiles(folderPath, searchPattern, SearchOption.AllDirectories);
         }
 
+        /// <summary>
+        /// ritorna la lista di file .xml nella directory
+        /// </summary>
+        /// <param name="directoryPath"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> ListXmlFiles(string directoryPath)
+        {
+            AssertIsDirectory(directoryPath);
 
+            return (
+                from filePath in Directory.EnumerateFiles(directoryPath, "*.xml", SearchOption.TopDirectoryOnly)
+                where FileReadable(filePath)
+                select filePath
+             ).ToList();
+            /*
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.xml", SearchOption.TopDirectoryOnly))
+            {
+                if (FileReadable(filePath))
+                {
+                    yield return filePath;
+                }
+            }
+            */
+        }
+        #endregion
+
+        #region delete
         public static void RecursiveDelete(string baseDirPath)
         {
             Directory.Delete(baseDirPath, true);
@@ -329,6 +348,9 @@ namespace ACUtils
             }
             baseDir.Delete(true);
         }
+        #endregion
+
+        #region checksum
 
         public static string FileChecksum(string filePath)
         {
@@ -352,6 +374,9 @@ namespace ACUtils
             return BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower();
         }
 
+        #endregion
+
+        #region compression
         /*
         public static string CompressFile(string filePath)
         {
@@ -413,6 +438,10 @@ namespace ACUtils
             return newFileName;
         }
 
+        #endregion
+
+        #region path
+
         public static string GetFileNameWithoutExtension(string path)
         {
             string result = Path.GetFileNameWithoutExtension(path);
@@ -451,11 +480,31 @@ namespace ACUtils
             return Regex.Replace(filePath, unsafeChars, "_");
         }
 
+
+
+        #endregion
+
+        #region encode
+
         public static void RecodeTextFile(string filePath)
         {
             string contents = File.ReadAllText(filePath);
             File.WriteAllText(filePath, contents, new UTF8Encoding(false));
         }
+
+        /// <summary>
+        /// codifica del contenuto di un file in Base64
+        /// </summary>
+        /// <param name="filePath">percorso assoluto file</param>
+        /// <returns>codifica BASE64 del contenuto del file</returns>
+        public static string FileToBase64(string filePath)
+        {
+            return Convert.ToBase64String(File.ReadAllBytes(filePath));
+        }
+
+        #endregion
+
+        #region ftp
 
         public static void FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword)
         {
@@ -474,24 +523,34 @@ namespace ACUtils
             }
         }
 
-        public static System.Net.FtpWebResponse FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        public static System.Net.FtpWebRequest FtpRequest(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, string ftpMethod, bool usePassive = false)
         {
-            // aggiunge la directory di upload se specificata
             if (!string.IsNullOrEmpty(ftpPath))
             {
                 ftpUrl = $"{ftpUrl}{ftpPath}";
             }
-
-            // aggiunge il nome del file
-            ftpUrl = System.IO.Path.Combine(ftpUrl, System.IO.Path.GetFileName(localFilePath));
-
             System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
             request.UsePassive = usePassive;
             request.UseBinary = true;
             request.KeepAlive = false;
-            request.Method = System.Net.WebRequestMethods.Ftp.UploadFile;
+            request.Method = ftpMethod;
             request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
+            return request;
+        }
 
+        public static System.Net.FtpWebResponse FtpUpload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        {
+            // aggiunge il nome del file
+            ftpPath = System.IO.Path.Combine(ftpPath, System.IO.Path.GetFileName(localFilePath));
+
+            System.Net.FtpWebRequest request = FtpRequest(
+                ftpUrl: ftpUrl,
+                ftpPath: ftpPath,
+                ftpUsername: ftpUsername,
+                ftpPassword: ftpPassword,
+                ftpMethod: System.Net.WebRequestMethods.Ftp.UploadFile,
+                usePassive: usePassive
+            );
             byte[] fileContents;
             using (System.IO.StreamReader sourceStream = new System.IO.StreamReader(localFilePath))
             {
@@ -502,27 +561,21 @@ namespace ACUtils
             {
                 requestStream.Write(fileContents, 0, fileContents.Length);
             }
-            using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
-            {
-                return response;
-            }
+
+            return (System.Net.FtpWebResponse)request.GetResponse();
         }
 
 
         public static System.Net.FtpWebResponse FtpDownload(string localFilePath, string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
         {
-            // aggiunge la directory di upload se specificata
-            if (!string.IsNullOrEmpty(ftpPath))
-            {
-                ftpUrl = $"{ftpUrl}{ftpPath}";
-            }
-
-            System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
-            request.UsePassive = usePassive;
-            request.UseBinary = true;
-            request.KeepAlive = false;
-            request.Method = System.Net.WebRequestMethods.Ftp.DownloadFile;
-            request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
+            System.Net.FtpWebRequest request = FtpRequest(
+                ftpUrl: ftpUrl,
+                ftpPath: ftpPath,
+                ftpUsername: ftpUsername,
+                ftpPassword: ftpPassword,
+                ftpMethod: System.Net.WebRequestMethods.Ftp.DownloadFile,
+                usePassive: usePassive
+            );
 
             using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
             {
@@ -541,32 +594,57 @@ namespace ACUtils
             }
         }
 
-        public static string FtpList(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        public static List<string> FtpList(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
         {
-            // aggiunge la directory di upload se specificata
-            if (!string.IsNullOrEmpty(ftpPath))
-            {
-                ftpUrl = $"{ftpUrl}{ftpPath}";
-            }
-
-            System.Net.FtpWebRequest request = (System.Net.FtpWebRequest)System.Net.WebRequest.Create(ftpUrl);
-            request.UsePassive = usePassive;
-            request.UseBinary = true;
-            request.KeepAlive = false;
-            request.Method = System.Net.WebRequestMethods.Ftp.ListDirectoryDetails;
-            request.Credentials = new System.Net.NetworkCredential(ftpUsername, ftpPassword);
-
+            System.Net.FtpWebRequest request = FtpRequest(
+                ftpUrl: ftpUrl,
+                ftpPath: ftpPath,
+                ftpUsername: ftpUsername,
+                ftpPassword: ftpPassword,
+                ftpMethod: System.Net.WebRequestMethods.Ftp.ListDirectory,
+                usePassive: usePassive
+            );
 
             using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
             {
-                using(Stream responseStream = response.GetResponseStream())
+                using (Stream responseStream = response.GetResponseStream())
                 {
-                    using(StreamReader reader = new StreamReader(responseStream))
+                    using (StreamReader reader = new StreamReader(responseStream))
                     {
-                        return reader.ReadToEnd();
+                        List<string> lst_strFiles = new List<string>();
+                        while (!reader.EndOfStream)
+                        {
+                            lst_strFiles.Add(reader.ReadLine());
+                        }
+                        return lst_strFiles;
                     }
                 }
             }
         }
+
+        public static bool FtpDelete(string ftpUrl, string ftpPath, string ftpUsername, string ftpPassword, bool usePassive = false)
+        {
+            System.Net.FtpWebRequest request = FtpRequest(
+                ftpUrl: ftpUrl,
+                ftpPath: ftpPath,
+                ftpUsername: ftpUsername,
+                ftpPassword: ftpPassword,
+                ftpMethod: System.Net.WebRequestMethods.Ftp.DeleteFile,
+                usePassive: usePassive
+            );
+            try
+            {
+                using (System.Net.FtpWebResponse response = (System.Net.FtpWebResponse)request.GetResponse())
+                {
+                    return response.StatusCode == System.Net.FtpStatusCode.FileActionOK;
+                }
+            }
+            catch (System.Net.WebException)
+            {
+                return false;
+            }
+        }
+
+        #endregion
     }
 }
