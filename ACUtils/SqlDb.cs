@@ -176,6 +176,7 @@ namespace ACUtils
                 connection.Open();
                 SqlCommand selectCommand = GenerateCommand(connection, queryString);
                 object value = selectCommand.ExecuteScalar();
+                connection.Close();
                 return (T)Convert.ChangeType(value, typeof(T));
             }
         }
@@ -188,7 +189,9 @@ namespace ACUtils
             {
                 connection.Open();
                 SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                return selectCommand.ExecuteNonQuery() > 0;
+                var value = selectCommand.ExecuteNonQuery() > 0;
+                connection.Close();
+                return value;
             }
         }
 
@@ -198,7 +201,9 @@ namespace ACUtils
             {
                 connection.Open();
                 SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                return selectCommand.ExecuteNonQuery() > 0;
+                var value = selectCommand.ExecuteNonQuery() > 0;
+                connection.Close();
+                return value;
             }
         }
 
@@ -263,7 +268,9 @@ namespace ACUtils
             {
                 connection.Open();
                 SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                return selectCommand.ExecuteNonQuery() > 0;
+                var value = selectCommand.ExecuteNonQuery() > 0;
+                connection.Close();
+                return value;
             }
         }
 

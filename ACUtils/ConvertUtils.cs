@@ -42,7 +42,7 @@ namespace ACUtils
         }
 
         /// <summary>
-        /// converte una stringa in oggetto DateTime utilizzando il formato standard
+        /// converte una stringa in oggetto DateTime utilizzando il formato standard ( mm-dd-yyy )
         /// </summary>
         /// <param name="dateString"></param>
         /// <returns></returns>
@@ -55,6 +55,27 @@ namespace ACUtils
             try
             {
                 return DateTime.Parse(dateString, System.Globalization.DateTimeFormatInfo.InvariantInfo);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// converte una stringa in oggetto DateTime utilizzando il formato locale
+        /// </summary>
+        /// <param name="dateString"></param>
+        /// <returns></returns>
+        public static DateTime? ToLocalDateTime(string dateString)
+        {
+            if (string.IsNullOrEmpty(dateString))
+            {
+                return null;
+            }
+            try
+            {
+                return DateTime.Parse(dateString, System.Globalization.DateTimeFormatInfo.CurrentInfo);
             }
             catch
             {
