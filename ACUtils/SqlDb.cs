@@ -82,14 +82,22 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-                adapter.Fill(ds);
-                connection.Close();
-                return ds;
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+                    DataSet ds = new DataSet();
+                    adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
+                    adapter.Fill(ds);
+                    connection.Close();
+                    return ds;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -97,14 +105,22 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = this.MissingSchemaAction;
-                adapter.Fill(ds);
-                connection.Close();
-                return ds;
+                try
+                {
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    connection.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+                    DataSet ds = new DataSet();
+                    adapter.MissingSchemaAction = this.MissingSchemaAction;
+                    adapter.Fill(ds);
+                    connection.Close();
+                    return ds;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -112,14 +128,22 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                DataSet ds = new DataSet();
-                adapter.MissingSchemaAction = this.MissingSchemaAction;
-                adapter.Fill(ds);
-                connection.Close();
-                return ds;
+                try
+                {
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
+                    connection.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+                    DataSet ds = new DataSet();
+                    adapter.MissingSchemaAction = this.MissingSchemaAction;
+                    adapter.Fill(ds);
+                    connection.Close();
+                    return ds;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString);
+                    throw;
+                }
             }
         }
 
@@ -147,13 +171,21 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                object value = selectCommand.ExecuteScalar();
-                connection.Close();
-                // conversione variabile da object a type specificato
-                //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                return (T)Convert.ChangeType(value, typeof(T));
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    object value = selectCommand.ExecuteScalar();
+                    connection.Close();
+                    // conversione variabile da object a type specificato
+                    //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
+                    return (T)Convert.ChangeType(value, typeof(T));
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -161,11 +193,19 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                object value = selectCommand.ExecuteScalar();
-                connection.Close();
-                return (T)Convert.ChangeType(value, typeof(T));
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    object value = selectCommand.ExecuteScalar();
+                    connection.Close();
+                    return (T)Convert.ChangeType(value, typeof(T));
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -173,11 +213,19 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                object value = selectCommand.ExecuteScalar();
-                connection.Close();
-                return (T)Convert.ChangeType(value, typeof(T));
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
+                    object value = selectCommand.ExecuteScalar();
+                    connection.Close();
+                    return (T)Convert.ChangeType(value, typeof(T));
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString);
+                    throw;
+                }
             }
         }
 
@@ -187,11 +235,19 @@ namespace ACUtils
             //queryString = System.Text.RegularExpressions.Regex.Replace(queryString, @"\s+", " ");
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                var value = selectCommand.ExecuteNonQuery() > 0;
-                connection.Close();
-                return value;
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    connection.Close();
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -199,11 +255,19 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                var value = selectCommand.ExecuteNonQuery() > 0;
-                connection.Close();
-                return value;
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    connection.Close();
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
         }
 
@@ -266,11 +330,19 @@ namespace ACUtils
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
-                connection.Open();
-                SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                var value = selectCommand.ExecuteNonQuery() > 0;
-                connection.Close();
-                return value;
+                try
+                {
+                    connection.Open();
+                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    connection.Close();
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString);
+                    throw;
+                }
             }
         }
 
@@ -309,6 +381,7 @@ namespace ACUtils
 
         private SqlCommand GenerateCommand(SqlConnection connection, string queryString)
         {
+            WriteLog(queryString);
             SqlCommand command = new SqlCommand(queryString, connection);
             return command;
         }
@@ -386,6 +459,27 @@ namespace ACUtils
             ;
             return ts.Switch(obj);
         }
+
+        private void WriteLog(string queryString)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+            string callerStack = GetCallerStack(4, 3);
+            logger.Debug($"SQL {callerStack}{Environment.NewLine}{queryString}");
+        }
+
+        private void WriteLog(Exception exception, string queryString)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+            string callerStack = GetCallerStack(4, 3);
+            logger.Error($"SQL {callerStack} : {exception}");
+        }
+
         private void WriteLog(string queryString, KeyValuePair<string, object>[] queryParams)
         {
             if (logger == null)
@@ -398,6 +492,16 @@ namespace ACUtils
             );
             string callerStack = GetCallerStack(4, 3);
             logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+        }
+
+        private void WriteLog(Exception exception, string queryString, KeyValuePair<string, object>[] queryParams)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+            string callerStack = GetCallerStack(4, 3);
+            logger.Error($"SQL {callerStack} : {exception}");
         }
 
         private void WriteLog(string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
@@ -413,6 +517,16 @@ namespace ACUtils
             );
             string callerStack = GetCallerStack(4, 3);
             logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+        }
+
+        private void WriteLog(Exception exception, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+            string callerStack = GetCallerStack(4, 3);
+            logger.Error($"SQL {callerStack} : {exception}");
         }
 
         private string GetCallerStack(int start, int count)
@@ -433,6 +547,7 @@ namespace ACUtils
         }
         #endregion
 
+        #region transaction
         public TransactionScope BeginTransaction()
         {
             scope = new TransactionScope();
@@ -459,5 +574,6 @@ namespace ACUtils
         {
             AbortTransaction();
         }
+        #endregion
     }
 }
