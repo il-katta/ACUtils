@@ -17,11 +17,17 @@ namespace ACUtils
             return Assembly.GetCallingAssembly().GetManifestResourceNames().ToList();
         }
 
-
         public static string GetEmbeddedResource(string resourceName)
         {
-            var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName);
+            var assembly = GetAssembly();
+            var stream = assembly.GetManifestResourceStream(FormatResourceName(assembly, resourceName));
             return new StreamReader(stream).ReadToEnd();
+        }
+
+        private static string FormatResourceName(Assembly assembly, string resourceName)
+        {
+            resourceName = resourceName.Replace(" ", "_").Replace("\\", ".").Replace("/", ".");
+            return $"{assembly.GetName().Name}.{resourceName}";
         }
     }
 }
