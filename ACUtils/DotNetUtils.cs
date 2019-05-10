@@ -19,8 +19,13 @@ namespace ACUtils
 
         public static string GetEmbeddedResource(string resourceName)
         {
-            var assembly = GetAssembly();
-            var stream = assembly.GetManifestResourceStream(FormatResourceName(assembly, resourceName));
+            var assembly = Assembly.GetCallingAssembly();
+            resourceName = FormatResourceName(assembly, resourceName);
+            var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+            {
+                throw new System.Exception($"resource {resourceName} not found");
+            }
             return new StreamReader(stream).ReadToEnd();
         }
 
