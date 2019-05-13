@@ -28,7 +28,7 @@ namespace Tests
         [Test]
         public void GetEmbeddedResourceTest()
         {
-            Assert.AreEqual("[test content]", DotNetUtils.GetEmbeddedResource("Tests.EmbeddedResourceFile.txt"));
+            Assert.AreEqual("[test content]", DotNetUtils.GetEmbeddedResource("EmbeddedResourceFile.txt"));
         }
     }
 }

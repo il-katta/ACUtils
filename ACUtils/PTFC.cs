@@ -12,19 +12,34 @@ namespace ACUtils
         protected bool isRunning;
         public bool IsRunning => isRunning;
 
-        public bool IsRunningOrNotEmpty => IsRunning || !OutQueue.IsEmpty;
+        public bool IsRunningOrNotEmpty => OutQueue != null && (IsRunning || !OutQueue.IsEmpty);
 
         private PTFC<T> producer;
+
+        protected Action<Exception> onErrorAction;
 
         public PTFC()
         {
             OutQueue = new ConcurrentQueue<T>();
         }
 
+        public PTFC(Action<Exception> onErrorAction)
+        {
+            OutQueue = new ConcurrentQueue<T>();
+            this.onErrorAction = onErrorAction;
+        }
+
         public PTFC(PTFC<T> producer)
         {
             OutQueue = new ConcurrentQueue<T>();
             this.producer = producer;
+        }
+
+        public PTFC(PTFC<T> producer, Action<Exception> onErrorAction)
+        {
+            OutQueue = new ConcurrentQueue<T>();
+            this.producer = producer;
+            this.onErrorAction = onErrorAction;
         }
 
 
@@ -37,12 +52,23 @@ namespace ACUtils
                 {
                     action(OutQueue);
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
-            return new PTFC<T>(this);
+            return new PTFC<T>(this, this.onErrorAction);
         }
 
 
@@ -74,12 +100,23 @@ namespace ACUtils
                 {
                     _filter(action);
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
-            return new PTFC<T>(this);
+            return new PTFC<T>(this, onErrorAction);
         }
 
         public PTFC<TO, T> Filter<TO>(Func<T, T> action)
@@ -91,12 +128,23 @@ namespace ACUtils
                 {
                     _filter(action);
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
-            return new PTFC<TO, T>(this);
+            return (new PTFC<TO, T>(this, onErrorAction));
         }
 
         public List<T> Consume()
@@ -119,7 +167,21 @@ namespace ACUtils
             {
                 if (producer.TryDequeue(out var t))
                 {
-                    action(t);
+                    try
+                    {
+                        action(t);
+                    }
+                    catch (Exception e)
+                    {
+                        if (onErrorAction != null)
+                        {
+                            onErrorAction?.Invoke(e);
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
                 }
             }
         }
@@ -139,23 +201,40 @@ namespace ACUtils
                         }
                     }
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
-            return new PTFC<T>(this);
+            return new PTFC<T>(this, this.onErrorAction);
         }
 
         public bool TryDequeue(out T t)
         {
-            if (IsRunningOrNotEmpty)
+            if (IsRunningOrNotEmpty && OutQueue != null)
             {
                 return OutQueue.TryDequeue(out t);
             }
 
             t = default(T);
             return false;
+        }
+
+        public PTFC<T> OnError(Action<Exception> action)
+        {
+            this.onErrorAction = action;
+            return this;
         }
     }
 
@@ -165,6 +244,11 @@ namespace ACUtils
         private PTFC<TI> producer;
 
         public PTFC(PTFC<TI> producer)
+        {
+            this.producer = producer;
+        }
+
+        public PTFC(PTFC<TI> producer, Action<Exception> onErrorAction) : base(onErrorAction)
         {
             this.producer = producer;
         }
@@ -188,7 +272,7 @@ namespace ACUtils
             }
         }
 
-        public PTFC<TO> Transmorm(Func<TI, TO> action)
+        public PTFC<TO> Transform(Func<TI, TO> action)
         {
             isRunning = true;
             Task.Run(() =>
@@ -197,16 +281,27 @@ namespace ACUtils
                 {
                     _filterT(action);
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
 
-            return new PTFC<TO>(this);
+            return new PTFC<TO>(this, this.onErrorAction);
         }
 
-        public PTFC<TT, TO> Transmorm<TT>(Func<TI, TO> action)
+        public PTFC<TT, TO> Transform<TT>(Func<TI, TO> action)
         {
             isRunning = true;
             Task.Run(() =>
@@ -215,13 +310,30 @@ namespace ACUtils
                 {
                     _filterT(action);
                 }
+                catch (Exception e)
+                {
+                    if (onErrorAction != null)
+                    {
+                        onErrorAction?.Invoke(e);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 finally
                 {
                     isRunning = false;
                 }
             });
 
-            return new PTFC<TT, TO>(this);
+            return new PTFC<TT, TO>(this, this.onErrorAction);
+        }
+
+        public new PTFC<TO, TI> OnError(Action<Exception> action)
+        {
+            this.onErrorAction = action;
+            return this;
         }
     }
 }
