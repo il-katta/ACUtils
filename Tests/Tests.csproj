@@ -58,6 +58,10 @@
     <Compile Include="SqlDbTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ACUtils.SqlDb\ACUtils.SqlDb.csproj">
+      <Project>{2749d4bc-d9a2-4503-b315-78782e3bf207}</Project>
+      <Name>ACUtils.SqlDb</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ACUtils\ACUtils.csproj">
       <Project>{6edfc22b-7712-414a-9817-6eaf08f8b74c}</Project>
       <Name>ACUtils</Name>
