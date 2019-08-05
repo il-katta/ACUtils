@@ -140,7 +140,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('build ProgramUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -156,6 +156,25 @@ pipeline {
                     archiveArtifacts artifacts: "ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
                     stash includes: 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg', name: 'nupkg-ACUtils.ProgramUtils'
+                }
+            }
+        }
+
+        stage('build DotNetUtils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.DotNetUtils/ACUtils.DotNetUtils.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.DotNetUtils/ACUtils.DotNetUtils.csproj')
+                    build_msbuild projectFile:'ACUtils.DotNetUtils/ACUtils.DotNetUtils.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.DotNetUtils/ACUtils.DotNetUtils.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg,ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg,ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.snupkg', name: 'nupkg-ACUtils.DotNetUtils'
                 }
             }
         }
@@ -234,6 +253,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.ProgramUtils'
                     
                     nuget.push('nuget-api-key', 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg')
+                }
+            }
+        }
+
+        stage('push DotNetUtils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.DotNetUtils'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg')
                 }
             }
         }
