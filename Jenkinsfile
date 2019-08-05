@@ -46,7 +46,7 @@ pipeline {
             }
         }
 
-		stage('build ACUtils.SqlDb') {
+		stage('build SqlDb') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -65,7 +65,7 @@ pipeline {
             }
         }
 
-		stage('build ACUtils.EnvironmentUtils') {
+		stage('build EnvironmentUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -84,7 +84,7 @@ pipeline {
             }
         }
 
-        stage('build ACUtils.FileUtils') {
+        stage('build FileUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -103,7 +103,7 @@ pipeline {
             }
         }
 
-        stage('build ACUtils.StringUtils') {
+        stage('build StringUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -122,7 +122,7 @@ pipeline {
             }
         }
 
-        stage('build ACUtils.Logger') {
+        stage('build Logger') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -141,7 +141,7 @@ pipeline {
             }
         }
 
-        stage('build ACUtils.ProgramUtils') {
+        stage('build ProgramUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -172,7 +172,7 @@ pipeline {
             }
         }
 
-        stage('push ACUtils.EnvironmentUtils') {
+        stage('push EnvironmentUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -183,7 +183,7 @@ pipeline {
             }
         }
         
-        stage('push ACUtils.SqlDb') {
+        stage('push SqlDb') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -194,7 +194,7 @@ pipeline {
             }
         }
 
-        stage('push ACUtils.FileUtils') {
+        stage('push FileUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -205,7 +205,7 @@ pipeline {
             }
         }
 
-        stage('push ACUtils.StringUtils') {
+        stage('push StringUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -216,7 +216,7 @@ pipeline {
             }
         }
 
-        stage('push ACUtils.Logger') {
+        stage('push Logger') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {
@@ -227,7 +227,7 @@ pipeline {
             }
         }
 
-        stage('push ACUtils.ProgramUtils') {
+        stage('push ProgramUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
                 script {

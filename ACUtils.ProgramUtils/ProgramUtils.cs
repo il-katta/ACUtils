@@ -25,7 +25,6 @@ namespace ACUtils
             return isAdmin;
         }
 
-
         public static bool ReExecAsAdmin(string[] args)
         {
             return new System.Diagnostics.Process()
@@ -33,6 +32,18 @@ namespace ACUtils
                 StartInfo = {
                   FileName = System.Reflection.Assembly.GetCallingAssembly().Location,
                   Verb = "runas",
+                  UseShellExecute = true,
+                  Arguments = string.Join(" ", args) // TODO: potrebbe non funzionare con argomenti contenti spazi
+                }
+            }.Start();
+        }
+
+        public static bool ReExec(string[] args)
+        {
+            return new System.Diagnostics.Process()
+            {
+                StartInfo = {
+                  FileName = System.Reflection.Assembly.GetCallingAssembly().Location,
                   UseShellExecute = true,
                   Arguments = string.Join(" ", args) // TODO: potrebbe non funzionare con argomenti contenti spazi
                 }
