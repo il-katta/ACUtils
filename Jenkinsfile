@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     // increase package version
-                    env.NEW_VERSION = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
+                    env.NEW_VERSION_ACUTILS = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
                     // nuget restore
                     nuget.restore('ACUtils/ACUtils.csproj')
                     build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release', target:'Restore'
@@ -60,7 +60,7 @@ pipeline {
             steps {
                 script {
                     // increase package version
-                    env.NEW_VERSION = projedit.increase_version("netstandard", "ACUtils.SqlDb/ACUtils.SqlDb.csproj")
+                    env.NEW_VERSION_ACUTILS_SQLDB = projedit.increase_version("netstandard", "ACUtils.SqlDb/ACUtils.SqlDb.csproj")
                     // nuget restore
                     nuget.restore('ACUtils.SqlDb/ACUtils.SqlDb.csproj')
                     build_msbuild projectFile:'ACUtils.SqlDb/ACUtils.SqlDb.csproj', configuration: 'Release', target:'Restore'
@@ -93,7 +93,7 @@ pipeline {
                     env.J_EMAIL = 'jenkins@s.loopback.it'
                     env.J_GIT_CONFIG = "true"
                     env.BRANCH_NAME = "master"
-                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION}", files: "ACUtils/ACUtils.csproj,ACUtils.SqlDb/ACUtils.SqlDb.csproj");
+                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION_ACUTILS}", files: "ACUtils/ACUtils.csproj ACUtils.SqlDb/ACUtils.SqlDb.csproj");
                 }
             }
         }
