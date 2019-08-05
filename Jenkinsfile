@@ -11,8 +11,8 @@ pipeline {
         timestamps()
     }
     triggers { 
-		//pollSCM(scmpoll_spec: 'H/2 * * * *', ignorePostCommitHooks: true)
-		githubPush()
+		pollSCM(scmpoll_spec: 'H/2 * * * *', ignorePostCommitHooks: true)
+		//WgithubPush()
 	}
     stages {
 		stage('short circuit') {
@@ -141,6 +141,25 @@ pipeline {
             }
         }
 
+        stage('build ACUtils.ProgramUtils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.ProgramUtils/ACUtils.ProgramUtils.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.ProgramUtils/ACUtils.ProgramUtils.csproj')
+                    build_msbuild projectFile:'ACUtils.ProgramUtils/ACUtils.ProgramUtils.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.ProgramUtils/ACUtils.ProgramUtils.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg', name: 'nupkg-ACUtils.ProgramUtils'
+                }
+            }
+        }
+
         stage('push ACUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -204,6 +223,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.Logger'
                     
                     nuget.push('nuget-api-key', 'ACUtils.Logger/bin/Release/ACUtils.Logger.*.nupkg')
+                }
+            }
+        }
+
+        stage('push ACUtils.ProgramUtils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.ProgramUtils'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg')
                 }
             }
         }

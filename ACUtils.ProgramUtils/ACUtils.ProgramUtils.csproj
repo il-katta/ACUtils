@@ -14,16 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ACUtils.EnvironmentUtils\ACUtils.EnvironmentUtils.csproj" />
-    <ProjectReference Include="..\ACUtils.FileUtils\ACUtils.FileUtils.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
-  </ItemGroup>
+  
 </Project>
