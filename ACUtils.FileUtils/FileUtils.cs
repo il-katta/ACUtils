@@ -120,7 +120,7 @@ namespace ACUtils
                 }
                 else
                 {
-                    throw new FileExistsException($"Impossibile spostare il file '{sFilePathSrc}': il file '{sFilePathDest}' esiste già");
+                    throw new Exceptions.FileExistsException($"Impossibile spostare il file '{sFilePathSrc}': il file '{sFilePathDest}' esiste già");
                 }
             }
 

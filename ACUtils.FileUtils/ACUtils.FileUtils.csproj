@@ -7,24 +7,19 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>1.0.0.101</Version>
     <PackageVersion>1.0.0.101</PackageVersion>
-    <Description>Utility per interrogazione database MSSQL</Description>
+    <Description>Collezione di utility varie</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
-    <PackageReference Include="CsvHelper" Version="12.1.2" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ACUtils.EnvironmentUtils\ACUtils.EnvironmentUtils.csproj" />
     <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
-    <ProjectReference Include="..\ACUtils.StringUtils\ACUtils.StringUtils.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
   </ItemGroup>
 
 </Project>

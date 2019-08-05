@@ -83,7 +83,7 @@ namespace ACUtils
                         var o = action(t);
                         OutQueue.Enqueue(o);
                     }
-                    catch (DiscartException)
+                    catch (Exceptions.DiscartException)
                     {
                         // ignore - elemento scartato
                     }
@@ -264,7 +264,7 @@ namespace ACUtils
                         var o = action(t);
                         OutQueue.Enqueue(o);
                     }
-                    catch (DiscartException)
+                    catch (Exceptions.DiscartException)
                     {
                         // ignore - elemento scartato
                     }

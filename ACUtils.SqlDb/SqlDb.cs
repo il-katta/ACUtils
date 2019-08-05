@@ -157,12 +157,12 @@ namespace ACUtils
 
             if (dt.Rows.Count == 0)
             {
-                throw new NotFoundException("nessun risultato ottenuto");
+                throw new Exceptions.NotFoundException("nessun risultato ottenuto");
             }
 
             if (dt.Rows.Count > 1)
             {
-                throw new TooMuchResultsException("ottenuto più valori");
+                throw new Exceptions.TooMuchResultsException("ottenuto più valori");
             }
             return dt.Rows[0];
         }

@@ -210,7 +210,7 @@ namespace Tests
                         return t;
                     }
 
-                    throw new DiscartException();
+                    throw new ACUtils.Exceptions.DiscartException();
                 })
                 .Filter<string>((t) =>
                 {
@@ -220,7 +220,7 @@ namespace Tests
                         return t;
                     }
 
-                    throw new DiscartException();
+                    throw new ACUtils.Exceptions.DiscartException();
                 })
                 .Transform((t) =>
                 {
