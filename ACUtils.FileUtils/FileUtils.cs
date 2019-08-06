@@ -71,6 +71,12 @@ namespace ACUtils
             }
         }
 
+        /// <summary>
+        /// ritorna true se la directory contiene uno o più file
+        /// ritorna false se il path non è una directory o se la directory è vuota
+        /// </summary>
+        /// <param name="sPath">path della directory</param>
+        /// <returns></returns>
         public static bool IsNotEmptyDirectory(string sPath)
         {
             if (!IsDirectory(sPath))
@@ -649,6 +655,23 @@ namespace ACUtils
             }
         }
 
+        #endregion
+
+        #region current process
+        public static string GetCurrentProcessPath()
+        {
+            return Path.GetFullPath(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+        }
+
+        public static string GetCurrentProcessDirectory()
+        {
+            return System.IO.Path.GetDirectoryName(GetCurrentProcessPath());
+        }
+
+        public static void CwdToCurrentProcessPath()
+        {
+            System.IO.Directory.SetCurrentDirectory(GetCurrentProcessDirectory());
+        }
         #endregion
     }
 }

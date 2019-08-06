@@ -52,6 +52,7 @@
     <Compile Include="ConvertUtilsTest.cs" />
     <Compile Include="DotNetUtilsTest.cs" />
     <Compile Include="FileUtilsTests.cs" />
+    <Compile Include="ProgramUtilsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PTFCTests.cs" />
     <Compile Include="RegEditUtilTest.cs" />
@@ -69,6 +70,10 @@
     <ProjectReference Include="..\ACUtils.FileUtils\ACUtils.FileUtils.csproj">
       <Project>{c2638868-f548-4282-a8c1-3408fc2b05ee}</Project>
       <Name>ACUtils.FileUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACUtils.ProgramUtils\ACUtils.ProgramUtils.csproj">
+      <Project>{acc14a9a-303d-400b-bdbd-b235540db36d}</Project>
+      <Name>ACUtils.ProgramUtils</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACUtils.SqlDb\ACUtils.SqlDb.csproj">
       <Project>{2749d4bc-d9a2-4503-b315-78782e3bf207}</Project>
