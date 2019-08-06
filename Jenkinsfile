@@ -4,7 +4,7 @@ library 'jenkins-libs'
 def projedit = new it.loopback.jenkins.Projedit(this)
 
 pipeline {
-    agent { node { label 'msbuild' } }
+    agent { node { label 'windows && msbuild' } }
     options {
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -12,7 +12,7 @@ pipeline {
     }
     triggers { 
 		pollSCM(scmpoll_spec: 'H/2 * * * *', ignorePostCommitHooks: true)
-		//WgithubPush()
+		//githubPush()
 	}
     stages {
 		stage('short circuit') {
@@ -33,6 +33,7 @@ pipeline {
                 script {
                     // increase package version
                     env.NEW_VERSION_ACUTILS = projedit.increase_version("netstandard", "ACUtils/ACUtils.csproj")
+                    currentBuild.description = env.NEW_VERSION_ACUTILS;
                     // nuget restore
                     nuget.restore('ACUtils/ACUtils.csproj')
                     build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release', target:'Restore'
@@ -179,6 +180,25 @@ pipeline {
             }
         }
 
+        stage('build NetUse') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.NetUse/ACUtils.NetUse.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.NetUse/ACUtils.NetUse.csproj')
+                    build_msbuild projectFile:'ACUtils.NetUse/ACUtils.NetUse.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.NetUse/ACUtils.NetUse.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg,ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg,ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.snupkg', name: 'nupkg-ACUtils.NetUse'
+                }
+            }
+        }
+
         stage('push ACUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -264,6 +284,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.DotNetUtils'
                     
                     nuget.push('nuget-api-key', 'ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg')
+                }
+            }
+        }
+
+        stage('push NetUse') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.NetUse'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg')
                 }
             }
         }
