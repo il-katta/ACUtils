@@ -5,20 +5,20 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.108</Version>
-    <PackageVersion>1.0.0.108</PackageVersion>
-    <Description>Collezione di utility varie</Description>
+    <Version>1.0.0.107</Version>
+    <PackageVersion>1.0.0.107</PackageVersion>
+    <Description>Utility per la lettura/scrittura su registro di Windows</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ACUtils.EnvironmentUtils\ACUtils.EnvironmentUtils.csproj" />
-    <ProjectReference Include="..\ACUtils.FileUtils\ACUtils.FileUtils.csproj" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
+    <ProjectReference Include="..\ACUtils.EnvironmentUtils\ACUtils.EnvironmentUtils.csproj" />
   </ItemGroup>
+
 </Project>

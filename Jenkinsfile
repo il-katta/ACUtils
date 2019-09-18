@@ -85,6 +85,25 @@ pipeline {
             }
         }
 
+		stage('build RegEditUtil') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.RegEditUtil/ACUtils.RegEditUtil.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.RegEditUtil/ACUtils.RegEditUtil.csproj')
+                    build_msbuild projectFile:'ACUtils.RegEditUtil/ACUtils.RegEditUtil.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.RegEditUtil/ACUtils.RegEditUtil.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg,ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg,ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.snupkg', name: 'nupkg-ACUtils.RegEditUtil'
+                }
+            }
+        }
+
         stage('build FileUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -218,6 +237,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.EnvironmentUtils'
                     
                     nuget.push('nuget-api-key', 'ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.nupkg')
+                }
+            }
+        }
+
+		stage('push RegEditUtil') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.RegEditUtil'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg')
                 }
             }
         }
