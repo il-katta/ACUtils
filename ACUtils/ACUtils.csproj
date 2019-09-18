@@ -14,11 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ACUtils.EnvironmentUtils\ACUtils.EnvironmentUtils.csproj" />
-    <ProjectReference Include="..\ACUtils.FileUtils\ACUtils.FileUtils.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
   </ItemGroup>
 </Project>
