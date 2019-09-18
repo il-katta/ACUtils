@@ -71,13 +71,29 @@
       <Project>{c2638868-f548-4282-a8c1-3408fc2b05ee}</Project>
       <Name>ACUtils.FileUtils</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj">
+      <Project>{d60b3836-e588-42e9-bf82-caf87a36eada}</Project>
+      <Name>ACUtils.Logger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACUtils.NetUse\ACUtils.NetUse.csproj">
+      <Project>{a111c9d6-d144-4406-b241-b4afe182a64d}</Project>
+      <Name>ACUtils.NetUse</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ACUtils.ProgramUtils\ACUtils.ProgramUtils.csproj">
       <Project>{acc14a9a-303d-400b-bdbd-b235540db36d}</Project>
       <Name>ACUtils.ProgramUtils</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ACUtils.RegEditUtil\ACUtils.RegEditUtil.csproj">
+      <Project>{990eea0b-1669-4d96-9638-8a39dd17fb5a}</Project>
+      <Name>ACUtils.RegEditUtil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ACUtils.SqlDb\ACUtils.SqlDb.csproj">
       <Project>{2749d4bc-d9a2-4503-b315-78782e3bf207}</Project>
       <Name>ACUtils.SqlDb</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ACUtils.StringUtils\ACUtils.StringUtils.csproj">
+      <Project>{e6fee866-3859-42d7-b7f1-64f1f1661588}</Project>
+      <Name>ACUtils.StringUtils</Name>
     </ProjectReference>
     <ProjectReference Include="..\ACUtils\ACUtils.csproj">
       <Project>{6edfc22b-7712-414a-9817-6eaf08f8b74c}</Project>
