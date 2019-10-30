@@ -159,6 +159,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    ConnectionClose(connection);
+                }
             }
         }
 
@@ -184,7 +188,6 @@ namespace ACUtils
             {
                 try
                 {
-
                     var selectCommand = GenerateCommand(connection, queryString, queryParams);
                     var value = selectCommand.ExecuteNonQuery() > 0;
                     return value;
@@ -193,6 +196,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString, queryParams);
                     throw;
+                }
+                finally
+                {
+                    ConnectionClose(connection);
                 }
             }
         }
@@ -203,7 +210,6 @@ namespace ACUtils
             {
                 try
                 {
-
                     var selectCommand = GenerateCommand(connection, queryString, queryParams);
                     var value = selectCommand.ExecuteNonQuery() > 0;
                     return value;
@@ -212,6 +218,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString, queryParams);
                     throw;
+                }
+                finally
+                {
+                    ConnectionClose(connection);
                 }
             }
         }
@@ -231,6 +241,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString);
                     throw;
+                }
+                finally
+                {
+                    ConnectionClose(connection);
                 }
             }
         }
