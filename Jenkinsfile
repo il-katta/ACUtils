@@ -237,6 +237,22 @@ pipeline {
             }
         }
 
+
+		stage('git commit') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    env.J_CREDS_IDS = 'repo-git'
+                    env.J_GIT_CONFIG = 'false'
+                    env.J_USERNAME = 'jenkins'
+                    env.J_EMAIL = 'jenkins@s.loopback.it'
+                    env.J_GIT_CONFIG = "true"
+                    env.BRANCH_NAME = "master"
+                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION_ACUTILS}", files: ".");
+                }
+            }
+        }
+
         stage('push ACUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -355,21 +371,6 @@ pipeline {
                     unstash 'nupkg-ACUtils.NetUse'
                     
                     nuget.push('nuget-api-key', 'ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg')
-                }
-            }
-        }
-
-        stage('git commit') {
-            when { expression { !test_committer('jenkins')  } }
-            steps {
-                script {
-                    env.J_CREDS_IDS = 'repo-git'
-                    env.J_GIT_CONFIG = 'false'
-                    env.J_USERNAME = 'jenkins'
-                    env.J_EMAIL = 'jenkins@s.loopback.it'
-                    env.J_GIT_CONFIG = "true"
-                    env.BRANCH_NAME = "master"
-                    git_push_ssh(commitMsg: "Jenkins build #${env.BUILD_NUMBER}", tagName: "${env.NEW_VERSION_ACUTILS}", files: ".");
                 }
             }
         }

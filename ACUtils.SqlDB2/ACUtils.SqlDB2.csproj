@@ -5,21 +5,21 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.110</Version>
-    <PackageVersion>1.0.0.110</PackageVersion>
+    <Version>1.0.0.112</Version>
+    <PackageVersion>1.0.0.112</PackageVersion>
     <Description>Utility per interrogazione database DB2</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="IBM.Data.DB2.iSeries">
+    <Reference Include="IBM.Data.DB2.iSeries" Pack="true">
       <HintPath>Lib\IBM.Data.DB2.iSeries.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 
