@@ -178,25 +178,61 @@ namespace ACUtils
 
 
 
-        public bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
-            var value = selectCommand.ExecuteNonQuery() > 0;
-            return value;
+            using (iDB2Connection connection = GetConnection())
+            {
+                try
+                {
+
+                    var selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
+            }
         }
 
-        public bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
+        public bool Execute(string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
-            var selectCommand = GenerateCommand(connection, queryString, queryParams);
-            var value = selectCommand.ExecuteNonQuery() > 0;
-            return value;
+            using (iDB2Connection connection = GetConnection())
+            {
+                try
+                {
+
+                    var selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
+            }
         }
 
-        public bool Execute(iDB2Connection connection, string queryString)
+        public bool Execute(string queryString)
         {
-            var selectCommand = GenerateCommand(connection, queryString);
-            var value = selectCommand.ExecuteNonQuery() > 0;
-            return value;
+            using (iDB2Connection connection = GetConnection())
+            {
+                try
+                {
+
+                    var selectCommand = GenerateCommand(connection, queryString);
+                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString);
+                    throw;
+                }
+            }
         }
 
         public iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
