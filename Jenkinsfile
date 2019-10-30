@@ -66,6 +66,25 @@ pipeline {
             }
         }
 
+        stage('build SqlDB2') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.SqlDB2/ACUtils.SqlDB2.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.SqlDB2/ACUtils.SqlDB2.csproj')
+                    build_msbuild projectFile:'ACUtils.SqlDB2/ACUtils.SqlDB2.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.SqlDB2/ACUtils.SqlDB2.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg,ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg,ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.snupkg', name: 'nupkg-ACUtils.SqlDB2'
+                }
+            }
+        }
+
 		stage('build EnvironmentUtils') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -259,6 +278,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.SqlDb'
                     
                     nuget.push('nuget-api-key', 'ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.nupkg')
+                }
+            }
+        }
+
+        stage('push SqlDB2') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.SqlDB2'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg')
                 }
             }
         }
