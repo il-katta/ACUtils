@@ -28,7 +28,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.DotNetUtils", "ACUt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.NetUse", "ACUtils.NetUse\ACUtils.NetUse.csproj", "{A111C9D6-D144-4406-B241-B4AFE182A64D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.RegEditUtil", "ACUtils.RegEditUtil\ACUtils.RegEditUtil.csproj", "{990EEA0B-1669-4D96-9638-8A39DD17FB5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.RegEditUtil", "ACUtils.RegEditUtil\ACUtils.RegEditUtil.csproj", "{990EEA0B-1669-4D96-9638-8A39DD17FB5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.SqlDB2", "ACUtils.SqlDB2\ACUtils.SqlDB2.csproj", "{5376AA3B-D225-4160-BD36-E6AA675292BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +82,10 @@ Global
 		{990EEA0B-1669-4D96-9638-8A39DD17FB5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{990EEA0B-1669-4D96-9638-8A39DD17FB5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{990EEA0B-1669-4D96-9638-8A39DD17FB5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

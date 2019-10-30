@@ -98,6 +98,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
             }
         }
 
@@ -121,6 +125,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
             }
         }
 
@@ -143,6 +151,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString);
                     throw;
+                }
+                finally
+                {
+                    try { connection.Close(); } catch { }
                 }
             }
         }
@@ -186,6 +198,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
             }
         }
 
@@ -206,6 +222,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
             }
         }
 
@@ -225,6 +245,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString);
                     throw;
+                }
+                finally
+                {
+                    try { connection.Close(); } catch { }
                 }
             }
         }
@@ -248,6 +272,10 @@ namespace ACUtils
                     WriteLog(ex, queryString, queryParams);
                     throw;
                 }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
             }
         }
 
@@ -267,6 +295,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString, queryParams);
                     throw;
+                }
+                finally
+                {
+                    try { connection.Close(); } catch { }
                 }
             }
         }
@@ -342,6 +374,10 @@ namespace ACUtils
                 {
                     WriteLog(ex, queryString);
                     throw;
+                }
+                finally
+                {
+                    try { connection.Close(); } catch { }
                 }
             }
         }

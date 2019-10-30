@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <Authors>Andrea Cattaneo</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Version>1.0.0.110</Version>
+    <PackageVersion>1.0.0.110</PackageVersion>
+    <Description>Utility per interrogazione database DB2</Description>
+    <NeutralLanguage>it</NeutralLanguage>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IBM.Data.DB2" Version="10.0.5.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="IBM.Data.DB2.iSeries">
+      <HintPath>Lib\IBM.Data.DB2.iSeries.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
