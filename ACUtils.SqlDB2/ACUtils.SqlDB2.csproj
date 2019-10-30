@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <BuildOutputInPackage Include="$(OutputPath)IBM.Data.DB2.iSeries.dll" />
     <Reference Include="IBM.Data.DB2.iSeries" Pack="true">
       <HintPath>Lib\IBM.Data.DB2.iSeries.dll</HintPath>
       <Private>true</Private>
