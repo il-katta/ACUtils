@@ -8,12 +8,14 @@ using ACUtils.Exceptions;
 
 namespace ACUtils
 {
-    public class SqlDB2
+    public class SqlDB2 : IDisposable
     {
 
         public ILogger logger { get; protected set; }
         string ConnectionString;
         bool connectionPersist;
+        bool useTransaction = false;
+        iDB2Transaction _transaction;
         iDB2Connection _connection;
 
 
@@ -64,7 +66,7 @@ namespace ACUtils
                 }
                 catch (Exception ex)
                 {
-                    WriteLog(ex, queryString);
+                    WriteLog(ex, queryString, queryParams);
                     throw;
                 }
                 finally
@@ -88,7 +90,7 @@ namespace ACUtils
                 }
                 catch (Exception ex)
                 {
-                    WriteLog(ex, queryString);
+                    WriteLog(ex, queryString, queryParams);
                     throw;
                 }
                 finally
@@ -154,20 +156,20 @@ namespace ACUtils
                 }
                 catch (Exception ex)
                 {
-                    WriteLog(ex, queryString);
+                    WriteLog(ex, queryString, queryParams);
                     throw;
                 }
             }
         }
 
-        public static T QuerySingleValue<T>(iDB2Connection connection, string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
+        public T QuerySingleValue<T>(iDB2Connection connection, string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
             iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
             object value = selectCommand.ExecuteScalar();
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        public static T QuerySingleValue<T>(iDB2Connection connection, string queryString)
+        public T QuerySingleValue<T>(iDB2Connection connection, string queryString)
         {
             iDB2Command selectCommand = GenerateCommand(connection, queryString);
             object value = selectCommand.ExecuteScalar();
@@ -176,44 +178,59 @@ namespace ACUtils
 
 
 
-        public static bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        public bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
             var value = selectCommand.ExecuteNonQuery() > 0;
             return value;
         }
 
-        public static bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
+        public bool Execute(iDB2Connection connection, string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
             var selectCommand = GenerateCommand(connection, queryString, queryParams);
             var value = selectCommand.ExecuteNonQuery() > 0;
             return value;
         }
 
-        public static bool Execute(iDB2Connection connection, string queryString)
+        public bool Execute(iDB2Connection connection, string queryString)
         {
             var selectCommand = GenerateCommand(connection, queryString);
             var value = selectCommand.ExecuteNonQuery() > 0;
             return value;
         }
 
-        public static iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
+        public iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
         {
+            WriteLog(queryString);
             var command = new iDB2Command(queryString, connection);
+            if (useTransaction)
+            {
+                command.Transaction = _transaction;
+            }
             return command;
         }
 
-        public static iDB2Command GenerateCommand(iDB2Connection connection, string queryString, KeyValuePair<string, object>[] queryParams)
+        public iDB2Command GenerateCommand(iDB2Connection connection, string queryString, KeyValuePair<string, object>[] queryParams)
         {
+            WriteLog(queryString, queryParams);
             var command = new iDB2Command(queryString, connection);
+            if (useTransaction)
+            {
+                command.Transaction = _transaction;
+            }
             foreach (KeyValuePair<string, object> param in queryParams)
                 command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
             return command;
         }
 
-        public static iDB2Command GenerateCommand(iDB2Connection connection, string queryString, KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
+        public iDB2Command GenerateCommand(iDB2Connection connection, string queryString, KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
+            WriteLog(queryString, queryParams);
             iDB2Command command = new iDB2Command(queryString, connection);
+            if (useTransaction)
+            {
+                command.Transaction = _transaction;
+            }
             foreach (KeyValuePair<string, KeyValuePair<iDB2DbType, object>> param in queryParams)
                 command.Parameters.Add(param.Key, param.Value.Key).Value = param.Value.Value ?? DBNull.Value;
             return command;
@@ -222,13 +239,13 @@ namespace ACUtils
 
         public iDB2Connection GetConnection()
         {
-
             if (connectionPersist)
             {
                 if (_connection == null)
                 {
                     _connection = new iDB2Connection(ConnectionString);
                 }
+                _connection.Open();
                 return _connection;
             }
 
@@ -247,6 +264,48 @@ namespace ACUtils
                     connection.Close();
                 }
                 catch { }
+            }
+        }
+
+
+        public void BeginTransaction()
+        {
+            useTransaction = true;
+            connectionPersist = true;
+            _transaction = GetConnection().BeginTransaction();
+        }
+
+        public void CompleteTransaction()
+        {
+            useTransaction = false;
+            _transaction.Commit();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
+        public void AbortTransaction()
+        {
+            useTransaction = false;
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
+
+        public void Dispose()
+        {
+            if (_transaction != null)
+            {
+                try
+                {
+                    _transaction.Dispose();
+                }
+                catch { }
+
+                if (connectionPersist && _connection != null)
+                {
+                    ConnectionClose(_connection);
+                }
             }
         }
 
@@ -388,6 +447,8 @@ namespace ACUtils
             ;
             return ts.Switch(obj);
         }
+
+
 
         #endregion
 
