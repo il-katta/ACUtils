@@ -14,9 +14,9 @@ namespace ACUtils
         public ILogger logger { get; protected set; }
         private TransactionScope scope;
 
-        private MissingSchemaAction? missingSchemaAction;
+        private static MissingSchemaAction? missingSchemaAction;
 
-        public MissingSchemaAction MissingSchemaAction
+        public static MissingSchemaAction MissingSchemaAction
         {
             get
             {
@@ -65,16 +65,33 @@ namespace ACUtils
             return ds.Tables[0];
         }
 
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            DataSet ds = QueryDataSet(connection, queryString, queryParams);
+            return ds.Tables[0];
+        }
+
         public DataTable QueryDataTable(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             DataSet ds = QueryDataSet(queryString, queryParams);
             return ds.Tables[0];
         }
 
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            DataSet ds = QueryDataSet(connection, queryString, queryParams);
+            return ds.Tables[0];
+        }
 
         public DataTable QueryDataTable(string queryString)
         {
             DataSet ds = QueryDataSet(queryString);
+            return ds.Tables[0];
+        }
+
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString)
+        {
+            DataSet ds = QueryDataSet(connection, queryString);
             return ds.Tables[0];
         }
 
@@ -85,11 +102,8 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey;
-                    adapter.Fill(ds);
+                    WriteLog(queryString, queryParams);
+                    var ds = QueryDataSet(connection, queryString, queryParams);
                     connection.Close();
                     return ds;
                 }
@@ -103,6 +117,16 @@ namespace ACUtils
                     try { connection.Close(); } catch { }
                 }
             }
+        }
+
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+            DataSet ds = new DataSet();
+            adapter.MissingSchemaAction = MissingSchemaAction;
+            adapter.Fill(ds);
+            return ds;
         }
 
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, object>[] queryParams)
@@ -111,12 +135,9 @@ namespace ACUtils
             {
                 try
                 {
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
                     connection.Open();
-                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = this.MissingSchemaAction;
-                    adapter.Fill(ds);
+                    WriteLog(queryString, queryParams);
+                    var ds = QueryDataSet(connection, queryString, queryParams);
                     connection.Close();
                     return ds;
                 }
@@ -132,18 +153,25 @@ namespace ACUtils
             }
         }
 
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+            DataSet ds = new DataSet();
+            adapter.MissingSchemaAction = MissingSchemaAction;
+            adapter.Fill(ds);
+            return ds;
+        }
+
         public DataSet QueryDataSet(string queryString)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 try
                 {
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
                     connection.Open();
-                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = this.MissingSchemaAction;
-                    adapter.Fill(ds);
+                    WriteLog(queryString);
+                    var ds = QueryDataSet(connection, queryString);
                     connection.Close();
                     return ds;
                 }
@@ -157,6 +185,16 @@ namespace ACUtils
                     try { connection.Close(); } catch { }
                 }
             }
+        }
+
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString);
+            SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+            DataSet ds = new DataSet();
+            adapter.MissingSchemaAction = MissingSchemaAction;
+            adapter.Fill(ds);
+            return ds;
         }
 
 
@@ -179,6 +217,28 @@ namespace ACUtils
             return dt.Rows[0];
         }
 
+        public static DataRow QueryDataRow(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            DataTable dt = QueryDataTable(
+                connection,
+                queryString,
+                queryParams
+            );
+
+            if (dt.Rows.Count == 0)
+            {
+                throw new Exceptions.NotFoundException("nessun risultato ottenuto");
+            }
+
+            if (dt.Rows.Count > 1)
+            {
+                throw new Exceptions.TooMuchResultsException("ottenuto più valori");
+            }
+
+            return dt.Rows[0];
+        }
+
+
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
@@ -186,12 +246,9 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                    object value = selectCommand.ExecuteScalar();
-                    connection.Close();
-                    // conversione variabile da object a type specificato
-                    //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                    return (T)Convert.ChangeType(value, typeof(T));
+                    WriteLog(queryString, queryParams);
+                    var value = QuerySingleValue<T>(connection, queryString, queryParams);
+                    return value;
                 }
                 catch (Exception ex)
                 {
@@ -203,6 +260,17 @@ namespace ACUtils
                     try { connection.Close(); } catch { }
                 }
             }
+        }
+
+
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            object value = selectCommand.ExecuteScalar();
+            connection.Close();
+            // conversione variabile da object a type specificato
+            //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
+            return (T)Convert.ChangeType(value, typeof(T));
         }
 
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
@@ -212,10 +280,10 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                    object value = selectCommand.ExecuteScalar();
+                    WriteLog(queryString, queryParams);
+                    var value = QuerySingleValue<T>(connection, queryString, queryParams);
                     connection.Close();
-                    return (T)Convert.ChangeType(value, typeof(T));
+                    return value;
                 }
                 catch (Exception ex)
                 {
@@ -229,6 +297,14 @@ namespace ACUtils
             }
         }
 
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            object value = selectCommand.ExecuteScalar();
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+
         public T QuerySingleValue<T>(string queryString)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
@@ -236,8 +312,7 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                    object value = selectCommand.ExecuteScalar();
+                    var value = QuerySingleValue<T>(connection, queryString);
                     connection.Close();
                     return (T)Convert.ChangeType(value, typeof(T));
                 }
@@ -253,6 +328,14 @@ namespace ACUtils
             }
         }
 
+
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString);
+            object value = selectCommand.ExecuteScalar();
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
         public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
@@ -262,8 +345,7 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    var value = Execute(connection, queryString, queryParams);
                     connection.Close();
                     return value;
                 }
@@ -277,6 +359,16 @@ namespace ACUtils
                     try { connection.Close(); } catch { }
                 }
             }
+        }
+
+
+        public static bool Execute(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
+            //queryString = System.Text.RegularExpressions.Regex.Replace(queryString, @"\s+", " ");
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            var value = selectCommand.ExecuteNonQuery() > 0;
+            return value;
         }
 
         public bool Execute(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
@@ -286,8 +378,7 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString, queryParams);
-                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    var value = Execute(connection, queryString, queryParams);
                     connection.Close();
                     return value;
                 }
@@ -303,9 +394,16 @@ namespace ACUtils
             }
         }
 
+        public bool Execute(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            var value = selectCommand.ExecuteNonQuery() > 0;
+            return value;
+        }
+
         public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
         {
-            DataTable dt = this.QueryDataTable(queryString, queryParams);
+            DataTable dt = QueryDataTable(queryString, queryParams);
             ToCsv(
                 dataTable: dt,
                 csvFilePath: csvFilePath,
@@ -316,7 +414,20 @@ namespace ACUtils
           );
         }
 
-        public void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
+        public static void ToCSV(SqlConnection connection, string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
+        {
+            DataTable dt = QueryDataTable(connection, queryString, queryParams);
+            ToCsv(
+                dataTable: dt,
+                csvFilePath: csvFilePath,
+                Escape: Escape,
+                Quote: Quote,
+                Delimiter: Delimiter,
+                BoolToIntConvert: BoolToIntConvert
+          );
+        }
+
+        public static void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
         {
 
             CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
@@ -365,8 +476,8 @@ namespace ACUtils
                 try
                 {
                     connection.Open();
-                    SqlCommand selectCommand = GenerateCommand(connection, queryString);
-                    var value = selectCommand.ExecuteNonQuery() > 0;
+                    WriteLog(queryString);
+                    var value = Execute(connection, queryString);
                     connection.Close();
                     return value;
                 }
@@ -380,6 +491,12 @@ namespace ACUtils
                     try { connection.Close(); } catch { }
                 }
             }
+        }
+
+        public static bool Execute(SqlConnection connection, string queryString)
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString);
+            return selectCommand.ExecuteNonQuery() > 0;
         }
 
 
@@ -415,16 +532,14 @@ namespace ACUtils
             }
         }
 
-        private SqlCommand GenerateCommand(SqlConnection connection, string queryString)
+        private static SqlCommand generateCommand(SqlConnection connection, string queryString)
         {
-            WriteLog(queryString);
             SqlCommand command = new SqlCommand(queryString, connection);
             return command;
         }
 
-        private SqlCommand GenerateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
+        private static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
         {
-            WriteLog(queryString, queryParams);
             SqlCommand command = new SqlCommand(queryString, connection);
             foreach (KeyValuePair<string, object> param in queryParams)
             {
@@ -433,9 +548,8 @@ namespace ACUtils
             return command;
         }
 
-        private SqlCommand GenerateCommand(SqlConnection connection, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        private static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            WriteLog(queryString, queryParams);
             SqlCommand command = new SqlCommand(queryString, connection);
             foreach (KeyValuePair<string, KeyValuePair<SqlDbType, object>> param in queryParams)
             {
