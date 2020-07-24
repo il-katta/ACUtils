@@ -30,7 +30,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.NetUse", "ACUtils.N
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.RegEditUtil", "ACUtils.RegEditUtil\ACUtils.RegEditUtil.csproj", "{990EEA0B-1669-4D96-9638-8A39DD17FB5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.SqlDB2", "ACUtils.SqlDB2\ACUtils.SqlDB2.csproj", "{5376AA3B-D225-4160-BD36-E6AA675292BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.SqlDB2", "ACUtils.SqlDB2\ACUtils.SqlDB2.csproj", "{5376AA3B-D225-4160-BD36-E6AA675292BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.SqlDbExt", "ACUtils.SqlDbExt\ACUtils.SqlDbExt.csproj", "{D5546CA3-D4F5-4963-8219-7290E712AF6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,6 +88,10 @@ Global
 		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5376AA3B-D225-4160-BD36-E6AA675292BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5546CA3-D4F5-4963-8219-7290E712AF6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5546CA3-D4F5-4963-8219-7290E712AF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5546CA3-D4F5-4963-8219-7290E712AF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5546CA3-D4F5-4963-8219-7290E712AF6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

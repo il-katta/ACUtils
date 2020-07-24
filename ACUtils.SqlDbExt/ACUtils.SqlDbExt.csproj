@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
@@ -16,10 +16,12 @@
 
   <ItemGroup>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="CsvHelper" Version="15.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
+    <ProjectReference Include="..\ACUtils.SqlDb\ACUtils.SqlDb.csproj" />
     <ProjectReference Include="..\ACUtils.StringUtils\ACUtils.StringUtils.csproj" />
   </ItemGroup>
 

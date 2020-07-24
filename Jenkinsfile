@@ -66,6 +66,25 @@ pipeline {
             }
         }
 
+        stage('build SqlDbExt') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.SqlDbExt/ACUtils.SqlDbExt.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.SqlDbExt/ACUtils.SqlDbExt.csproj')
+                    build_msbuild projectFile:'ACUtils.SqlDbExt/ACUtils.SqlDbExt.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.SqlDbExt/ACUtils.SqlDbExt.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg,ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg,ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.snupkg', name: 'nupkg-ACUtils.SqlDbExt'
+                }
+            }
+        }
+
         stage('build SqlDB2') {
             when { expression { !test_committer('jenkins')  } }
             steps {
@@ -294,6 +313,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.SqlDb'
                     
                     nuget.push('nuget-api-key', 'ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.nupkg')
+                }
+            }
+        }
+        
+        stage('push SqlDbExt') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.SqlDbExt'
+                    
+                    nuget.push('nuget-api-key', 'ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg')
                 }
             }
         }

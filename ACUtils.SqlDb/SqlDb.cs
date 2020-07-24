@@ -29,6 +29,7 @@ namespace ACUtils
             set => missingSchemaAction = value;
         }
 
+        #region costructor
         public SqlDb(string connectionString, ILogger logger)
         {
             this.ConnectionString = connectionString;
@@ -49,7 +50,9 @@ namespace ACUtils
             this.logger = null;
             scope = null;
         }
+        #endregion
 
+        #region QueryDataTable
         /// <summary>
         /// Eseque la query e restituisce il DataTable del risultato
         /// </summary>
@@ -94,7 +97,9 @@ namespace ACUtils
             DataSet ds = QueryDataSet(connection, queryString);
             return ds.Tables[0];
         }
+        #endregion
 
+        #region QueryDataSet
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
@@ -197,7 +202,9 @@ namespace ACUtils
             return ds;
         }
 
+        #endregion
 
+        #region QueryDataRow
         public DataRow QueryDataRow(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             DataTable dt = QueryDataTable(
@@ -238,6 +245,9 @@ namespace ACUtils
             return dt.Rows[0];
         }
 
+        #endregion
+
+        #region QuerySingleValue
 
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
@@ -261,8 +271,6 @@ namespace ACUtils
                 }
             }
         }
-
-
         public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
@@ -271,6 +279,20 @@ namespace ACUtils
             // conversione variabile da object a type specificato
             //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
             return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        public static Nullable<T> QueryNullableSingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
+        {
+            SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
+            object value = selectCommand.ExecuteScalar();
+            connection.Close();
+            if (value is DBNull)
+            {
+                return null;
+            }
+            // conversione variabile da object a type specificato
+            //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
+            return (T?)Convert.ChangeType(value, typeof(T?));
         }
 
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
@@ -336,6 +358,34 @@ namespace ACUtils
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
+
+        public Nullable<T> QueryNullableSingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    WriteLog(queryString, queryParams);
+                    var value = QueryNullableSingleValue<T>(connection, queryString, queryParams);
+                    connection.Close();
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
+                finally
+                {
+                    try { connection.Close(); } catch { }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Execute
         public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
@@ -360,7 +410,6 @@ namespace ACUtils
                 }
             }
         }
-
 
         public static bool Execute(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
@@ -401,74 +450,6 @@ namespace ACUtils
             return value;
         }
 
-        public void ToCSV(string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataTable dt = QueryDataTable(queryString, queryParams);
-            ToCsv(
-                dataTable: dt,
-                csvFilePath: csvFilePath,
-                Escape: Escape,
-                Quote: Quote,
-                Delimiter: Delimiter,
-                BoolToIntConvert: BoolToIntConvert
-          );
-        }
-
-        public static void ToCSV(SqlConnection connection, string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataTable dt = QueryDataTable(connection, queryString, queryParams);
-            ToCsv(
-                dataTable: dt,
-                csvFilePath: csvFilePath,
-                Escape: Escape,
-                Quote: Quote,
-                Delimiter: Delimiter,
-                BoolToIntConvert: BoolToIntConvert
-          );
-        }
-
-        public static void ToCsv(DataTable dataTable, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false)
-        {
-
-            CsvHelper.Configuration.Configuration csvConf = new CsvHelper.Configuration.Configuration()
-            {
-                TrimOptions = CsvHelper.Configuration.TrimOptions.InsideQuotes,
-                Escape = Escape,
-                Quote = Quote,
-                Delimiter = Delimiter,
-                TypeConverterCache = null
-            };
-
-            if (BoolToIntConvert)
-            {
-                csvConf.TypeConverterCache = new CsvHelper.TypeConversion.TypeConverterCache();
-                csvConf.TypeConverterCache.AddConverter<bool>(new CsvBooleanConverter());
-            }
-
-            using (System.IO.StreamWriter textWriter = System.IO.File.CreateText(csvFilePath))
-            {
-                using (CsvHelper.CsvWriter csv = new CsvHelper.CsvWriter(textWriter, csvConf))
-                {
-                    foreach (DataColumn column in dataTable.Columns)
-                    {
-                        csv.WriteField(column.ColumnName);
-                    }
-                    csv.NextRecord();
-
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        for (int i = 0; i < dataTable.Columns.Count; i++)
-                        {
-                            csv.WriteField(row[i]);
-                        }
-                        csv.NextRecord();
-                    }
-                    csv.Flush();
-                }
-                textWriter.Close();
-            }
-        }
-
         public bool Execute(string queryString)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
@@ -499,6 +480,7 @@ namespace ACUtils
             return selectCommand.ExecuteNonQuery() > 0;
         }
 
+        #endregion
 
         public static T GetColVal<T>(DataRow dataRow, string columName)
         {
@@ -532,6 +514,7 @@ namespace ACUtils
             }
         }
 
+        #region generateCommand
         private static SqlCommand generateCommand(SqlConnection connection, string queryString)
         {
             SqlCommand command = new SqlCommand(queryString, connection);
@@ -557,6 +540,7 @@ namespace ACUtils
             }
             return command;
         }
+        #endregion
 
         #region log
         private static string SqlTypeToString(SqlDbType type)
@@ -720,7 +704,15 @@ namespace ACUtils
             }
         }
 
+        #endregion
+
+        #region IDisposable
         public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
         {
             AbortTransaction();
         }
