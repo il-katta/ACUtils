@@ -11,8 +11,8 @@
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <OutputPath>..\dist\</OutputPath>
   </PropertyGroup>
-
   <ItemGroup>
     <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
   </ItemGroup>

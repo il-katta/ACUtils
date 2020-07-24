@@ -11,7 +11,7 @@
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <UserSecretsId>3db2ed8e-c8d0-4fd1-8ded-ff4040ff27c7</UserSecretsId>
+    <OutputPath>..\dist\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

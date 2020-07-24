@@ -11,6 +11,7 @@
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <OutputPath>..\dist\</OutputPath>
   </PropertyGroup>
 
   

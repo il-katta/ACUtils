@@ -40,9 +40,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils/ACUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils/bin/Release/ACUtils.*.nupkg,ACUtils/bin/Release/ACUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils*.nupkg,dist/ACUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils/bin/Release/ACUtils.*.nupkg,ACUtils/bin/Release/ACUtils.*.snupkg', name: 'nupkg-ACUtils'
+                    stash includes: 'dist/ACUtils*.nupkg,dist/ACUtils*.snupkg', name: 'nupkg-ACUtils'
                 }
             }
         }
@@ -59,9 +59,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.SqlDb/ACUtils.SqlDb.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.nupkg,ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.SqlDb*.nupkg,dist/ACUtils.SqlDb*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.nupkg,ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.snupkg', name: 'nupkg-ACUtils.SqlDb'
+                    stash includes: 'dist/ACUtils.SqlDb*.nupkg,dist/ACUtils.SqlDb*.snupkg', name: 'nupkg-ACUtils.SqlDb'
                 }
             }
         }
@@ -78,9 +78,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.SqlDbExt/ACUtils.SqlDbExt.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg,ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.SqlDbExt*.nupkg,dist/ACUtils.SqlDbExt*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg,ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.snupkg', name: 'nupkg-ACUtils.SqlDbExt'
+                    stash includes: 'dist/ACUtils.SqlDbExt*.nupkg,dist/ACUtils.SqlDbExt*.snupkg', name: 'nupkg-ACUtils.SqlDbExt'
                 }
             }
         }
@@ -97,9 +97,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.SqlDB2/ACUtils.SqlDB2.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg,ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.SqlDB2*.nupkg,dist/ACUtils.SqlDB2*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg,ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.snupkg', name: 'nupkg-ACUtils.SqlDB2'
+                    stash includes: 'dist/ACUtils.SqlDB2*.nupkg,dist/ACUtils.SqlDB2*.snupkg', name: 'nupkg-ACUtils.SqlDB2'
                 }
             }
         }
@@ -116,9 +116,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.EnvironmentUtils/ACUtils.EnvironmentUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.nupkg,ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.EnvironmentUtils*.nupkg,dist/ACUtils.EnvironmentUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.nupkg,ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.snupkg', name: 'nupkg-ACUtils.EnvironmentUtils'
+                    stash includes: 'dist/ACUtils.EnvironmentUtils*.nupkg,dist/ACUtils.EnvironmentUtils*.snupkg', name: 'nupkg-ACUtils.EnvironmentUtils'
                 }
             }
         }
@@ -135,9 +135,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.RegEditUtil/ACUtils.RegEditUtil.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg,ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.RegEditUtil*.nupkg,dist/ACUtils.RegEditUtil*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg,ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.snupkg', name: 'nupkg-ACUtils.RegEditUtil'
+                    stash includes: 'dist/ACUtils.RegEditUtil*.nupkg,dist/ACUtils.RegEditUtil*.snupkg', name: 'nupkg-ACUtils.RegEditUtil'
                 }
             }
         }
@@ -154,9 +154,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.FileUtils/ACUtils.FileUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.FileUtils/bin/Release/ACUtils.FileUtils.*.nupkg,ACUtils.FileUtils/bin/Release/ACUtils.FileUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.FileUtils*.nupkg,dist/ACUtils.FileUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.FileUtils/bin/Release/ACUtils.FileUtils.*.nupkg,ACUtils.FileUtils/bin/Release/ACUtils.FileUtils.*.snupkg', name: 'nupkg-ACUtils.FileUtils'
+                    stash includes: 'dist/ACUtils.FileUtils*.nupkg,dist/ACUtils.FileUtils*.snupkg', name: 'nupkg-ACUtils.FileUtils'
                 }
             }
         }
@@ -173,9 +173,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.StringUtils/ACUtils.StringUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.StringUtils/bin/Release/ACUtils.StringUtils.*.nupkg,ACUtils.StringUtils/bin/Release/ACUtils.StringUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.StringUtils*.nupkg,dist/ACUtils.StringUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.StringUtils/bin/Release/ACUtils.StringUtils.*.nupkg,ACUtils.StringUtils/bin/Release/ACUtils.StringUtils.*.snupkg', name: 'nupkg-ACUtils.StringUtils'
+                    stash includes: 'dist/ACUtils.StringUtils*.nupkg,dist/ACUtils.StringUtils*.snupkg', name: 'nupkg-ACUtils.StringUtils'
                 }
             }
         }
@@ -192,9 +192,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.Logger/ACUtils.Logger.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.Logger/bin/Release/ACUtils.Logger.*.nupkg,ACUtils.Logger/bin/Release/ACUtils.Logger.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.Logger*.nupkg,dist/ACUtils.Logger*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.Logger/bin/Release/ACUtils.Logger.*.nupkg,ACUtils.Logger/bin/Release/ACUtils.Logger.*.snupkg', name: 'nupkg-ACUtils.Logger'
+                    stash includes: 'dist/ACUtils.Logger*.nupkg,dist/ACUtils.Logger*.snupkg', name: 'nupkg-ACUtils.Logger'
                 }
             }
         }
@@ -211,9 +211,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.ProgramUtils/ACUtils.ProgramUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.ProgramUtils*.nupkg,dist/ACUtils.ProgramUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg,ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.snupkg', name: 'nupkg-ACUtils.ProgramUtils'
+                    stash includes: 'dist/ACUtils.ProgramUtils*.nupkg,dist/ACUtils.ProgramUtils*.snupkg', name: 'nupkg-ACUtils.ProgramUtils'
                 }
             }
         }
@@ -230,9 +230,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.DotNetUtils/ACUtils.DotNetUtils.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg,ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.DotNetUtils*.nupkg,dist/ACUtils.DotNetUtils*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg,ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.snupkg', name: 'nupkg-ACUtils.DotNetUtils'
+                    stash includes: 'dist/ACUtils.DotNetUtils*.nupkg,dist/ACUtils.DotNetUtils*.snupkg', name: 'nupkg-ACUtils.DotNetUtils'
                 }
             }
         }
@@ -249,9 +249,9 @@ pipeline {
                     // build
                     build_msbuild projectFile:'ACUtils.NetUse/ACUtils.NetUse.csproj', configuration: 'Release'
                     // archive artifacts
-                    archiveArtifacts artifacts: "ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg,ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/ACUtils.NetUse*.nupkg,dist/ACUtils.NetUse*.snupkg", fingerprint: true, onlyIfSuccessful: true
                     // stash
-                    stash includes: 'ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg,ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.snupkg', name: 'nupkg-ACUtils.NetUse'
+                    stash includes: 'dist/ACUtils.NetUse*.nupkg,dist/ACUtils.NetUse*.snupkg', name: 'nupkg-ACUtils.NetUse'
                 }
             }
         }
