@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.123</Version>
-    <PackageVersion>1.0.0.123</PackageVersion>
+    <Version>1.0.0.124</Version>
+    <PackageVersion>1.0.0.124</PackageVersion>
     <Description>Collezione di utility per l'accesso autenticato a share di rete</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
