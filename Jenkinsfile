@@ -279,7 +279,7 @@ pipeline {
                     
                     unstash 'nupkg-ACUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils/bin/Release/ACUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.*.nupkg')
                 }
             }
         }
@@ -290,7 +290,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.EnvironmentUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.EnvironmentUtils/bin/Release/ACUtils.EnvironmentUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.EnvironmentUtils.*.nupkg')
                 }
             }
         }
@@ -301,7 +301,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.RegEditUtil'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.RegEditUtil/bin/Release/ACUtils.RegEditUtil.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.RegEditUtil.*.nupkg')
                 }
             }
         }
@@ -312,7 +312,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.SqlDb'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.SqlDb/bin/Release/ACUtils.SqlDb.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.SqlDb.*.nupkg')
                 }
             }
         }
@@ -323,7 +323,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.SqlDbExt'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.SqlDbExt/bin/Release/ACUtils.SqlDbExt.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.SqlDbExt.*.nupkg')
                 }
             }
         }
@@ -334,7 +334,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.SqlDB2'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.SqlDB2/bin/Release/ACUtils.SqlDB2.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.SqlDB2.*.nupkg')
                 }
             }
         }
@@ -345,7 +345,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.FileUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.FileUtils/bin/Release/ACUtils.FileUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.FileUtils.*.nupkg')
                 }
             }
         }
@@ -356,7 +356,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.StringUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.StringUtils/bin/Release/ACUtils.StringUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.StringUtils.*.nupkg')
                 }
             }
         }
@@ -367,7 +367,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.Logger'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.Logger/bin/Release/ACUtils.Logger.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.Logger.*.nupkg')
                 }
             }
         }
@@ -378,7 +378,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.ProgramUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.ProgramUtils/bin/Release/ACUtils.ProgramUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.ProgramUtils.*.nupkg')
                 }
             }
         }
@@ -389,7 +389,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.DotNetUtils'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.DotNetUtils/bin/Release/ACUtils.DotNetUtils.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.DotNetUtils.*.nupkg')
                 }
             }
         }
@@ -400,7 +400,7 @@ pipeline {
                 script {
                     unstash 'nupkg-ACUtils.NetUse'
                     
-                    nuget.push('nuget-api-key', 'ACUtils.NetUse/bin/Release/ACUtils.NetUse.*.nupkg')
+                    nuget.push('nuget-api-key', 'dist/ACUtils.NetUse.*.nupkg')
                 }
             }
         }
