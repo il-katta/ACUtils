@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.126</Version>
-    <PackageVersion>1.0.0.126</PackageVersion>
+    <Version>1.0.0.127</Version>
+    <PackageVersion>1.0.0.127</PackageVersion>
     <Description>Utility per interrogazione database DB2</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
