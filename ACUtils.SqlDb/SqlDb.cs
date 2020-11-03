@@ -29,6 +29,24 @@ namespace ACUtils
             set => missingSchemaAction = value;
         }
 
+        public bool ShareConnection = false;
+
+
+        public SqlConnection _connection;
+        public SqlConnection Connection
+        {
+            get
+            {
+
+                if (!ShareConnection || _connection == null || _connection.State != ConnectionState.Open)
+                {
+                    _connection = new SqlConnection(connectionString: ConnectionString);
+                }
+                return _connection;
+
+            }
+        }
+
         #region costructor
         public SqlDb(string connectionString, ILogger logger)
         {
@@ -102,14 +120,13 @@ namespace ACUtils
         #region QueryDataSet
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var ds = QueryDataSet(connection, queryString, queryParams);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -119,7 +136,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -136,14 +154,13 @@ namespace ACUtils
 
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var ds = QueryDataSet(connection, queryString, queryParams);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -153,7 +170,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -170,14 +188,13 @@ namespace ACUtils
 
         public DataSet QueryDataSet(string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString);
                     var ds = QueryDataSet(connection, queryString);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -187,7 +204,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -251,7 +269,7 @@ namespace ACUtils
 
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
@@ -267,7 +285,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -275,7 +294,6 @@ namespace ACUtils
         {
             SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
             object value = selectCommand.ExecuteScalar();
-            connection.Close();
             // conversione variabile da object a type specificato
             //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
             return (T)Convert.ChangeType(value, typeof(T));
@@ -285,7 +303,6 @@ namespace ACUtils
         {
             SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
             object value = selectCommand.ExecuteScalar();
-            connection.Close();
             if (value is DBNull)
             {
                 return null;
@@ -297,14 +314,13 @@ namespace ACUtils
 
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var value = QuerySingleValue<T>(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -314,7 +330,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -329,13 +346,12 @@ namespace ACUtils
 
         public T QuerySingleValue<T>(string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     var value = QuerySingleValue<T>(connection, queryString);
-                    connection.Close();
                     return (T)Convert.ChangeType(value, typeof(T));
                 }
                 catch (Exception ex)
@@ -345,7 +361,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -361,14 +378,13 @@ namespace ACUtils
 
         public Nullable<T> QueryNullableSingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var value = QueryNullableSingleValue<T>(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -378,7 +394,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -390,13 +407,12 @@ namespace ACUtils
         {
             //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
             //queryString = System.Text.RegularExpressions.Regex.Replace(queryString, @"\s+", " ");
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     var value = Execute(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -406,7 +422,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -422,13 +439,12 @@ namespace ACUtils
 
         public bool Execute(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     var value = Execute(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -438,7 +454,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }
@@ -452,14 +469,13 @@ namespace ACUtils
 
         public bool Execute(string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = Connection)
             {
                 try
                 {
                     connection.Open();
                     WriteLog(queryString);
                     var value = Execute(connection, queryString);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -469,7 +485,8 @@ namespace ACUtils
                 }
                 finally
                 {
-                    try { connection.Close(); } catch { }
+                    if (!ShareConnection)
+                        try { connection.Close(); } catch { }
                 }
             }
         }

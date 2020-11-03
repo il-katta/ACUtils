@@ -31,7 +31,7 @@ namespace ACUtils
             this.connectionPersist = connectionPersist;
         }
 
-
+        #region QueryDataTable
         public DataTable QueryDataTable(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             DataSet ds = QueryDataSet(queryString, queryParams);
@@ -50,6 +50,9 @@ namespace ACUtils
             return ds.Tables[0];
         }
 
+        #endregion
+
+        #region QueryDataSet
 
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
@@ -137,6 +140,10 @@ namespace ACUtils
             return dt.Rows[0];
         }
 
+        #endregion
+
+        #region QuerySingleValue
+
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             using (iDB2Connection connection = GetConnection())
@@ -180,7 +187,9 @@ namespace ACUtils
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
+        #endregion
 
+        #region Execute
 
         public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
@@ -249,6 +258,10 @@ namespace ACUtils
             }
         }
 
+        #endregion
+
+        #region GenerateCommand
+
         public iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
         {
             WriteLog(queryString);
@@ -286,6 +299,7 @@ namespace ACUtils
             return command;
         }
 
+        #endregion
 
         public iDB2Connection GetConnection()
         {
@@ -317,6 +331,7 @@ namespace ACUtils
             }
         }
 
+        #region transaction
 
         public void BeginTransaction()
         {
@@ -341,6 +356,7 @@ namespace ACUtils
             _transaction = null;
         }
 
+        #endregion
 
         public void Dispose()
         {
