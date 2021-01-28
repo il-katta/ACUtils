@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>1.0.0.131</Version>
-    <PackageVersion>1.0.0.123</PackageVersion>
+    <PackageVersion>1.0.0.131</PackageVersion>
     <Description>Collezione di utility per l'accesso autenticato a share di rete</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>

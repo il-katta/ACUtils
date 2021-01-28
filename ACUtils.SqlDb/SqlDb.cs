@@ -278,7 +278,16 @@ namespace ACUtils
             connection.Close();
             // conversione variabile da object a type specificato
             //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-            return (T)Convert.ChangeType(value, typeof(T));
+            var type = typeof(T);
+            if (Nullable.GetUnderlyingType(typeof(T)) != null)
+            {
+                type = Nullable.GetUnderlyingType(type);
+                if (value == null || value == DBNull.Value)
+                {
+                    return default(T);
+                }
+            }
+            return (T)Convert.ChangeType(value, type);
         }
 
         public static Nullable<T> QueryNullableSingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct

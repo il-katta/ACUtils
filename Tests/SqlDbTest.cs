@@ -66,12 +66,40 @@ namespace Tests
         }
 
 
+        [TestCase(1)]
+        [TestCase(123)]
+        [TestCase(1234)]
+        [TestCase(null)]
+        public void TestSelectInt(int value)
+        {
+            SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.AddWithKey;
+            SqlDb.QueryDataRow(
+                new System.Data.SqlClient.SqlConnection(CONNECTION_STRING),
+                 "SELECT @a AS A",
+                "@a".WithValue(value)
+            );
+
+            SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.Add;
+
+            db.QueryDataRow(
+                "SELECT @a AS A",
+                "@a".WithValue(value)
+            );
+
+            var result = db.QuerySingleValue<int>(
+                "SELECT @a AS A",
+                "@a".WithValue(value)
+            );
+            Assert.AreEqual(value, result);
+        }
+
+
         [Test]
         [TestCase(1)]
         [TestCase(123)]
         [TestCase(1234)]
         [TestCase(null)]
-        public void TestSelectInt(int? value)
+        public void TestSelectNullableInt(int? value)
         {
             SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.AddWithKey;
             SqlDb.QueryDataRow(
