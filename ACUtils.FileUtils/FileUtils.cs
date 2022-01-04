@@ -194,7 +194,6 @@ namespace ACUtils
             try
             {
                 System.Security.AccessControl.FileSecurity directoryAcl = new FileInfo(sPathSrc).GetAccessControl();
-                directoryAcl.SetAccessRuleProtection(true, true);
                 new FileInfo(sPathDest).SetAccessControl(directoryAcl);
                 return true;
             }
@@ -673,5 +672,8 @@ namespace ACUtils
             System.IO.Directory.SetCurrentDirectory(GetCurrentProcessDirectory());
         }
         #endregion
+
+        // TODO: aggiungere un mime type detector
+        // ref. https://github.com/MeaningOfLights/MimeDetect
     }
 }

@@ -256,6 +256,24 @@ pipeline {
             }
         }
 
+        stage('build SqlDb.Utils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    // increase package version
+                    projedit.increase_version("netstandard", "ACUtils.SqlDb.Utils/ACUtils.SqlDb.Utils.csproj")
+                    // nuget restore
+                    nuget.restore('ACUtils.SqlDb.Utils/ACUtils.SqlDb.Utils.csproj')
+                    build_msbuild projectFile:'ACUtils.SqlDb.Utils/ACUtils.SqlDb.Utils.csproj', configuration: 'Release', target:'Restore'
+                    // build
+                    build_msbuild projectFile:'ACUtils.SqlDb.Utils/ACUtils.SqlDb.Utils.csproj', configuration: 'Release'
+                    // archive artifacts
+                    archiveArtifacts artifacts: "dist/ACUtils.SqlDb.Utils*.nupkg,dist/ACUtils.SqlDb.Utils*.snupkg", fingerprint: true, onlyIfSuccessful: true
+                    // stash
+                    stash includes: 'dist/ACUtils.SqlDb.Utils*.nupkg,dist/ACUtils.SqlDb.Utils*.snupkg', name: 'nupkg-ACUtils.SqlDb.Utils'
+                }
+            }
+        }
 
 		stage('git commit') {
             when { expression { !test_committer('jenkins')  } }
@@ -401,6 +419,17 @@ pipeline {
                     unstash 'nupkg-ACUtils.NetUse'
                     
                     nuget.push('nuget-api-key', 'dist/ACUtils.NetUse.*.nupkg')
+                }
+            }
+        }
+
+        stage('push SqlDb.Utils') {
+            when { expression { !test_committer('jenkins')  } }
+            steps {
+                script {
+                    unstash 'nupkg-ACUtils.SqlDb.Utils'
+                    
+                    nuget.push('nuget-api-key', 'dist/ACUtils.SqlDb.Utils.*.nupkg')
                 }
             }
         }

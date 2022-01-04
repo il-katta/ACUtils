@@ -21,8 +21,6 @@ namespace ACUtils
                 RemoteName = _networkName
             };
 
-            string userName = string.IsNullOrEmpty(credentials.Domain) ? credentials.UserName : string.Format(@"{0}\{1}", credentials.Domain, credentials.UserName);
-
             try
             {
                 WNetCancelConnection2(_networkName, 0, true);
@@ -30,10 +28,10 @@ namespace ACUtils
             catch { }
 
             int result = WNetAddConnection2(
-                netResource,
-                credentials.Password,
-                userName,
-                0
+                netResource: netResource,
+                password: credentials?.Password,
+                username: string.IsNullOrEmpty(credentials?.Domain) ? credentials?.UserName : string.Format(@"{0}\{1}", credentials.Domain, credentials.UserName),
+                flags: 0x04
             );
 
             if (result != 0)

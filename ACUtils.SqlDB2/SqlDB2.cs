@@ -136,7 +136,7 @@ namespace ACUtils
 
             return dt.Rows[0];
         }
-
+        #region QuerySingleValue
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             using (iDB2Connection connection = GetConnection())
@@ -180,7 +180,103 @@ namespace ACUtils
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
+        #endregion
 
+        #region QueryReader
+
+        public IEnumerable<iDB2DataReader> _queryReader(string queryString)
+        {
+            using (iDB2Connection connection = GetConnection())
+            {
+                using (iDB2DataReader reader = GenerateCommand(connection, queryString).ExecuteReader())
+                {
+                    while (reader.Read()) yield return reader;
+                }
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> QueryReader(string queryString)
+        {
+            try
+            {
+                return _queryReader(queryString);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex, queryString);
+                throw;
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> _queryReader(string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            using (iDB2Connection connection = GetConnection())
+            {
+                using (iDB2DataReader reader = GenerateCommand(connection, queryString, queryParams).ExecuteReader())
+                {
+                    while (reader.Read()) yield return reader;
+                }
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> QueryReader(string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            try
+            {
+                return _queryReader(queryString, queryParams);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex, queryString, queryParams);
+                throw;
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> _queryReader(iDB2Connection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            using (iDB2DataReader reader = GenerateCommand(connection, queryString, queryParams).ExecuteReader())
+            {
+                while (reader.Read()) yield return reader;
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> QueryReader(iDB2Connection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            try
+            {
+                return _queryReader(connection, queryString, queryParams);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex, queryString, queryParams);
+                throw;
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> _queryReader(iDB2Connection connection, string queryString)
+        {
+            using (iDB2DataReader reader = GenerateCommand(connection, queryString).ExecuteReader())
+            {
+                while (reader.Read()) yield return reader;
+            }
+        }
+
+        public IEnumerable<iDB2DataReader> QueryReader(iDB2Connection connection, string queryString)
+        {
+            try
+            {
+                return _queryReader(connection, queryString);
+            }
+            catch (Exception ex)
+            {
+                WriteLog(ex, queryString);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Execute
 
         public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
@@ -249,6 +345,10 @@ namespace ACUtils
             }
         }
 
+        #endregion
+
+        #region GenerateCommand
+
         public iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
         {
             WriteLog(queryString);
@@ -257,6 +357,7 @@ namespace ACUtils
             {
                 command.Transaction = _transaction;
             }
+            command.CommandTimeout = 0;
             return command;
         }
 
@@ -270,6 +371,7 @@ namespace ACUtils
             }
             foreach (KeyValuePair<string, object> param in queryParams)
                 command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+            command.CommandTimeout = 0;
             return command;
         }
 
@@ -283,10 +385,12 @@ namespace ACUtils
             }
             foreach (KeyValuePair<string, KeyValuePair<iDB2DbType, object>> param in queryParams)
                 command.Parameters.Add(param.Key, param.Value.Key).Value = param.Value.Value ?? DBNull.Value;
+            command.CommandTimeout = 0;
             return command;
         }
 
-
+        #endregion
+        
         public iDB2Connection GetConnection()
         {
             if (connectionPersist)
@@ -354,7 +458,7 @@ namespace ACUtils
 
                 if (connectionPersist && _connection != null)
                 {
-                    ConnectionClose(_connection);
+                    ConnectionClose(_connection, force: true);
                 }
             }
         }
@@ -367,7 +471,7 @@ namespace ACUtils
                 return;
             }
             string callerStack = GetCallerStack(4, 3);
-            logger.Debug($"SQL {callerStack}{Environment.NewLine}{queryString}");
+            logger?.Debug($"SQL {callerStack}{Environment.NewLine}{queryString}");
         }
 
         private void WriteLog(Exception exception, string queryString)
@@ -377,7 +481,7 @@ namespace ACUtils
                 return;
             }
             string callerStack = GetCallerStack(4, 3);
-            logger.Error($"SQL {callerStack} : {exception}");
+            logger?.Error($"SQL {callerStack} : {exception}");
         }
 
         private void WriteLog(string queryString, KeyValuePair<string, object>[] queryParams)
@@ -391,7 +495,7 @@ namespace ACUtils
                 from p in queryParams select $"DECLARE {p.Key} VARCHAR(250) = {ValueToString(p.Value)}"
             );
             string callerStack = GetCallerStack(4, 3);
-            logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+            logger?.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
         private void WriteLog(Exception exception, string queryString, KeyValuePair<string, object>[] queryParams)
@@ -401,7 +505,7 @@ namespace ACUtils
                 return;
             }
             string callerStack = GetCallerStack(4, 3);
-            logger.Error($"SQL {callerStack} : {exception}");
+            logger?.Error($"SQL {callerStack} : {exception}");
         }
 
         private void WriteLog(string queryString, KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
@@ -416,7 +520,7 @@ namespace ACUtils
                     from p in queryParams select $"DECLARE {p.Key} {SqlTypeToString(p.Value.Key)} = {ValueToString(p.Value.Value)}"
             );
             string callerStack = GetCallerStack(4, 3);
-            logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
+            logger?.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
         private void WriteLog(Exception exception, string queryString, KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
@@ -426,7 +530,7 @@ namespace ACUtils
                 return;
             }
             string callerStack = GetCallerStack(4, 3);
-            logger.Error($"SQL {callerStack} : {exception}");
+            logger?.Error($"SQL {callerStack} : {exception}");
         }
 
 
