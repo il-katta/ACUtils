@@ -109,7 +109,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var ds = QueryDataSet(connection, queryString, queryParams);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -143,7 +142,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var ds = QueryDataSet(connection, queryString, queryParams);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -177,7 +175,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString);
                     var ds = QueryDataSet(connection, queryString);
-                    connection.Close();
                     return ds;
                 }
                 catch (Exception ex)
@@ -275,7 +272,6 @@ namespace ACUtils
         {
             SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
             object value = selectCommand.ExecuteScalar();
-            connection.Close();
             // conversione variabile da object a type specificato
             //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
             var type = typeof(T);
@@ -294,7 +290,6 @@ namespace ACUtils
         {
             SqlCommand selectCommand = generateCommand(connection, queryString, queryParams);
             object value = selectCommand.ExecuteScalar();
-            connection.Close();
             if (value is DBNull)
             {
                 return null;
@@ -313,7 +308,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var value = QuerySingleValue<T>(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -344,7 +338,6 @@ namespace ACUtils
                 {
                     connection.Open();
                     var value = QuerySingleValue<T>(connection, queryString);
-                    connection.Close();
                     return (T)Convert.ChangeType(value, typeof(T));
                 }
                 catch (Exception ex)
@@ -377,7 +370,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString, queryParams);
                     var value = QueryNullableSingleValue<T>(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -405,7 +397,6 @@ namespace ACUtils
                 {
                     connection.Open();
                     var value = Execute(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -437,7 +428,6 @@ namespace ACUtils
                 {
                     connection.Open();
                     var value = Execute(connection, queryString, queryParams);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
@@ -468,7 +458,6 @@ namespace ACUtils
                     connection.Open();
                     WriteLog(queryString);
                     var value = Execute(connection, queryString);
-                    connection.Close();
                     return value;
                 }
                 catch (Exception ex)
