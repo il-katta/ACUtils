@@ -13,12 +13,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <OutputPath>..\dist\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <BuildOutputInPackage Include="$(OutputPath)IBM.Data.DB2.iSeries.dll" />
+    <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
     <Reference Include="IBM.Data.DB2.iSeries" Pack="true">
       <HintPath>Lib\IBM.Data.DB2.iSeries.dll</HintPath>
       <Private>true</Private>

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
+    <ProjectReference Include="..\ACUtils.SqlDb.Utils\ACUtils.SqlDb.Utils.csproj" />
     <ProjectReference Include="..\ACUtils.StringUtils\ACUtils.StringUtils.csproj" />
   </ItemGroup>
 

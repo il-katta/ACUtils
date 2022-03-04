@@ -18,7 +18,6 @@ namespace ACUtils
         iDB2Transaction _transaction;
         iDB2Connection _connection;
 
-
         public SqlDB2(string connectionString, ILogger logger, bool connectionPersist = false)
         {
             ConnectionString = connectionString;
