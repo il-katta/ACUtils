@@ -7,7 +7,7 @@ namespace ACUtils
     {
         public static KeyValuePair<string, KeyValuePair<SqlDbType, object>> WithValue(this string key, string value, SqlDbType type, int maxLenght)
         {
-            return WithValueType(key, value.Truncate(maxLenght), type);
+            return WithValueType(key, value?.Truncate(maxLenght), type);
         }
 
         public static KeyValuePair<string, KeyValuePair<SqlDbType, object>> WithValueType(this string key, object value, SqlDbType type)
