@@ -389,7 +389,7 @@ namespace ACUtils
         }
 
         #endregion
-        
+
         public iDB2Connection GetConnection()
         {
             if (connectionPersist)
@@ -406,7 +406,6 @@ namespace ACUtils
             connection.Open();
             return connection;
         }
-
 
         public void ConnectionClose(iDB2Connection connection, bool force = false)
         {
@@ -454,11 +453,10 @@ namespace ACUtils
                     _transaction.Dispose();
                 }
                 catch { }
-
-                if (connectionPersist && _connection != null)
-                {
-                    ConnectionClose(_connection, force: true);
-                }
+            }
+            if (connectionPersist && _connection != null)
+            {
+                ConnectionClose(_connection, force: true);
             }
         }
 

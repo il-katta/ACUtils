@@ -15,11 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <BuildOutputInPackage Include="$(OutputPath)IBM.Data.DB2.iSeries.dll" />
     <ProjectReference Include="..\ACUtils.Logger\ACUtils.Logger.csproj" />
-    <Reference Include="IBM.Data.DB2.iSeries" Pack="true">
+    <Reference Include="IBM.Data.DB2.iSeries" Pack="false">
       <HintPath>Lib\IBM.Data.DB2.iSeries.dll</HintPath>
-      <Private>true</Private>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
