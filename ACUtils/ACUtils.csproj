@@ -5,15 +5,12 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.134</Version>
-    <PackageVersion>1.0.0.134</PackageVersion>
+    <Version>1.0.0.135</Version>
+    <PackageVersion>1.0.0.135</PackageVersion>
     <Description>Collezione di utility varie</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <OutputPath>..\dist\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Condition="'$(TargetFramework)' == 'net46'" Include="System.Transactions" />
-  </ItemGroup>
 </Project>
