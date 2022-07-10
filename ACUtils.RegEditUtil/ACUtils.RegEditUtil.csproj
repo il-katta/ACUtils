@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.134</Version>
-    <PackageVersion>1.0.0.134</PackageVersion>
+    <Version>1.0.0.135</Version>
+    <PackageVersion>1.0.0.135</PackageVersion>
     <Description>Utility per la lettura/scrittura su registro di Windows</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
