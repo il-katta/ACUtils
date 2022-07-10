@@ -1,0 +1,67 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+      
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+        with:
+          nuget-api-key: ${{ secrets.NuGetAPIKey }}
+          nuget-version: '5.x'
+      
+      - run: cd $GITHUB_WORKSPACE
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+      - name: Change package version
+        run: |
+          python -c "from urllib.request import urlretrieve; urlretrieve('https://raw.githubusercontent.com/il-katta/jenkins-libs/master/resources/it/loopback/jenkins/projedit.py', 'projedit.py')"
+          foreach ($file in (Get-ChildItem ./ACUtils*/*.csproj) ) { 
+            python projedit.py netstandard $file
+          }
+
+      - name: Restore packages
+        run: nuget restore ACUtils.sln
+      
+      - name: Build
+        run: |
+          msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Restore"
+          msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Rebuild"
+
+      - name: Archive Nuget packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-packages
+          path: |
+            dist/*.nupkg
+            dist/*.snupkg
+      
+      - name: Publish
+        run: |
+          foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
+            nuget push $file -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+          }
+        
+      - name: Commit deploy
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ./ACUtils*/*.csproj
+          git commit -m "deploy"
+          git push
