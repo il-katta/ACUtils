@@ -22,6 +22,7 @@ jobs:
         with:
           nuget-api-key: ${{ secrets.NuGetAPIKey }}
           nuget-version: '5.x'
+          nuget-api-key-source: https://api.nuget.org/v3/index.json
       
       - run: cd $GITHUB_WORKSPACE
 
@@ -55,7 +56,7 @@ jobs:
       - name: Publish
         run: |
           foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
-            nuget push $file -Source https://api.nuget.org/v3/index.json -SkipDuplicate
+            nuget push $file
           }
         
       - name: Commit deploy
