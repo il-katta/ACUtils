@@ -52,12 +52,6 @@ jobs:
             dist/*.nupkg
             dist/*.snupkg
       
-      - name: Publish
-        run: |
-          foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
-            nuget push $file -Source https://api.nuget.org/v3/index.json -SkipDuplicate
-          }
-        
       - name: Commit deploy
         run: |
           git config user.name github-actions
@@ -65,3 +59,9 @@ jobs:
           git add ./ACUtils*/*.csproj
           git commit -m "deploy"
           git push
+
+      - name: Publish
+        run: |
+          foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
+            nuget push $file -Source https://api.nuget.org/v3/index.json  -SkipDuplicate
+          }
