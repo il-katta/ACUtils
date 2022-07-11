@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.135</Version>
-    <PackageVersion>1.0.0.135</PackageVersion>
+    <Version>1.0.0.136</Version>
+    <PackageVersion>1.0.0.136</PackageVersion>
     <Description>Utility per interrogazione database MSSQL</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
