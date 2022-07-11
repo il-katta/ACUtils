@@ -33,8 +33,10 @@ jobs:
         run: |
           python -c "from urllib.request import urlretrieve; urlretrieve('https://raw.githubusercontent.com/il-katta/jenkins-libs/master/resources/it/loopback/jenkins/projedit.py', 'projedit.py')"
           foreach ($file in (Get-ChildItem ./ACUtils*/*.csproj) ) { 
-            python projedit.py netstandard $file
+            $version = python projedit.py netstandard $file
+            Write-Output "::set-output name=PROJECT_VERSION::$version"
           }
+        id: project_version
 
       - name: Restore packages
         run: nuget restore ACUtils.sln
@@ -52,6 +54,16 @@ jobs:
             dist/*.nupkg
             dist/*.snupkg
       
+      - name: Create release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: "${{ steps.project_version.outputs.PROJECT_VERSION }}"
+          files: |
+            dist/*.nupkg
+            dist/*.snupkg
+
       - name: Commit deploy
         run: |
           git config user.name github-actions
@@ -65,3 +77,4 @@ jobs:
           foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
             nuget push $file -Source https://api.nuget.org/v3/index.json  -SkipDuplicate
           }
+
