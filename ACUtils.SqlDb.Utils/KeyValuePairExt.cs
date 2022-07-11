@@ -15,9 +15,7 @@ namespace ACUtils
 
         public static KeyValuePair<string, object> WithValue(this string key, string value, int maxLenght)
         {
-            if (!string.IsNullOrEmpty(value) && value.Length > maxLenght)
-                value = value.Substring(0, maxLenght);
-            return new KeyValuePair<string, object>(key, value);
+            return new KeyValuePair<string, object>(key, value?.Truncate(maxLenght));
         }
     }
 }
