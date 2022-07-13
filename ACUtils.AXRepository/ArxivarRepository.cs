@@ -892,15 +892,15 @@ namespace ACUtils.AXRepository
             this._logger?.Debug($"WCF ChannelOpening: {message}");
         }
 
-        public bool UserCreateIfNotExists(
+        public bool UserCreateIfNotExists_Wcf(
             string username,
             string aoo,
             string description,
-            string default_password,
+            string defaultPassword,
             string email = null,
             string lang = "it",
             int tipo = 1,
-            bool must_change_password = true,
+            bool mustChangePassword = true,
             bool workflow = true
         )
         {
@@ -912,11 +912,11 @@ namespace ACUtils.AXRepository
                         username: username,
                         aoo: aoo,
                         description: description,
-                        defaultPassword: default_password,
+                        defaultPassword: defaultPassword,
                         email: email,
                         lang: lang,
                         tipo: tipo,
-                        mustChangePassword: must_change_password,
+                        mustChangePassword: mustChangePassword,
                         workflow: workflow
                    );
                 }
@@ -1103,6 +1103,42 @@ namespace ACUtils.AXRepository
                 usersManagementApi.UsersManagementSetUserGroups(userId: newUser.User, groups: newGroups);
             }
             return true;
+        }
+
+        public bool UserCreateIfNotExists(
+            string username,
+            string aoo,
+            string description,
+            string defaultPassword,
+            string email = null,
+            string lang = "it",
+            int tipo = 1,
+            bool mustChangePassword = true,
+            bool workflow = true,
+            IEnumerable<string> groups = null
+        )
+        {
+            if (!UserExists(aoo, username))
+            {
+                return UserCreate(
+                    username: username,
+                    aoo: aoo,
+                    description: description,
+                    defaultPassword: defaultPassword,
+                    email: email,
+                    lang: lang,
+                    tipo: tipo,
+                    mustChangePassword: mustChangePassword,
+                    workflow: workflow,
+                    groups: groups
+                );
+            }
+
+            foreach (var group in groups)
+            {
+                UserAddGroup(aoo, username, group);
+            }
+            return false;
         }
 
         public bool UserAddGroup(string aoo, string username, string groupName)
