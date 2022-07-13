@@ -193,19 +193,19 @@ namespace ACUtils.AXRepository
             switch (field.ClassName)
             {
                 case "FieldBaseForSearchStringDto":
-                    ((FieldBaseForSearchStringDto)field)._Operator = operator_;
+                    ((FieldBaseForSearchStringDto)field).Operator = operator_;
                     ((FieldBaseForSearchStringDto)field).Valore1 = Convert.ToString(value);
                     break;
                 case "FieldBaseForSearchDocumentTypeDto":
-                    ((FieldBaseForSearchDocumentTypeDto)field)._Operator = operator_;
+                    ((FieldBaseForSearchDocumentTypeDto)field).Operator = operator_;
                     ((FieldBaseForSearchDocumentTypeDto)field).Valore1 = (DocumentTypeSearchFilterDto)value;
                     break;
                 case "FieldBaseForSearchIntDto":
-                    ((FieldBaseForSearchIntDto)field)._Operator = operator_;
+                    ((FieldBaseForSearchIntDto)field).Operator = operator_;
                     ((FieldBaseForSearchIntDto)field).Valore1 = Convert.ToInt32(value);
                     break;
                 case "FieldBaseForSearchDateTimeDto":
-                    ((FieldBaseForSearchDateTimeDto)field)._Operator = operator_;
+                    ((FieldBaseForSearchDateTimeDto)field).Operator = operator_;
                     ((FieldBaseForSearchDateTimeDto)field).Valore1 = Convert.ToDateTime(value);
                     break;
                 default:

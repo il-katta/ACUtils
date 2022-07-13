@@ -417,7 +417,7 @@ namespace ACUtils.AXRepository
                 {
                     checkInOutApi.CheckInOutCheckOut(System.Convert.ToInt32(docNumber));
                 }
-                bufferIds = apiCache.CacheInsert(File.ReadAllBytes(model.FilePath));
+                bufferIds = apiCache.CacheInsert(new MemoryStream(File.ReadAllBytes(model.FilePath)));
                 if (isCheckOutForTask)
                 {
                     checkInOutApi.CheckInOutCheckInForTask(
@@ -737,7 +737,7 @@ namespace ACUtils.AXRepository
             var select = taskWorkV2Api.TaskWorkV2GetDefaultSelect();
             select.Fields.Select("DOCNUMBER");
 
-            var docs = taskWorkV2Api.TaskWorkV2GetDocumentsByProcessId(select, processId) as JObject;
+            var docs = taskWorkV2Api.TaskWorkV2GetDocumentsByProcessId(processId, select) as JObject;
             var docnumber_pos = -1;
             var s = docs["columns"].AsEnumerable().Select((d, y) => (d, y));
             int i = 0;
@@ -792,7 +792,7 @@ namespace ACUtils.AXRepository
             var searchApi = new ArxivarNext.Api.SearchesApi(configuration);
             var select = searchApi.SearchesGetSelect();
             select.Fields.Select("CLASSEDOC");
-            return foldersApi.FoldersGetDocumentsById(select, id);
+            return foldersApi.FoldersGetDocumentsById(select:select, id:id);
         }
 
         public int GetFascicoloLevel(int id)
@@ -832,7 +832,7 @@ namespace ACUtils.AXRepository
 
             if (!folder_exists)
             {
-                var newfodler = foldersApi.FoldersNew(subfoldername, parent_folder);
+                var newfodler = foldersApi.FoldersNew(parentId: parent_folder, name: subfoldername);
                 folder_id = newfodler.Id.Value;
             }
             else
@@ -843,19 +843,19 @@ namespace ACUtils.AXRepository
             // rimuovi dalla cartella precedente
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(new List<int?>() { docnumber }, parent_folder);
+                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber },id: parent_folder);
             }
             catch { }
 
             // rimuove se già presente 
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(new List<int?>() { docnumber }, folder_id);
+                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id:folder_id);
             }
             catch { }
 
             // aggiungi alla cartella di destinazione
-            foldersApi.FoldersInsertDocnumbers(new List<int?>() { docnumber }, folder_id);
+            foldersApi.FoldersInsertDocnumbers(docnumbers: new List<int?>() { docnumber }, id:folder_id);
         }
 
         #endregion
