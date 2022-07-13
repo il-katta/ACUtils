@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{608B23C0-8D94-4C93-AA62-D6DF3DC44F93}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
 		Jenkinsfile = Jenkinsfile
 	EndProjectSection
 EndProject
@@ -34,9 +35,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.SqlDB2", "ACUtils.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.SqlDbExt", "ACUtils.SqlDbExt\ACUtils.SqlDbExt.csproj", "{D5546CA3-D4F5-4963-8219-7290E712AF6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.SqlDb.Utils", "ACUtils.SqlDb.Utils\ACUtils.SqlDb.Utils.csproj", "{F4EBF2BA-75DE-4F7A-B900-AF4D5734C1DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.SqlDb.Utils", "ACUtils.SqlDb.Utils\ACUtils.SqlDb.Utils.csproj", "{F4EBF2BA-75DE-4F7A-B900-AF4D5734C1DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACUtils.AXRepository", "ACUtils.AXRepository\ACUtils.AXRepository.csproj", "{9315E643-F70A-4582-8B4E-ED86CD458A08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACUtils.AXRepository", "ACUtils.AXRepository\ACUtils.AXRepository.csproj", "{9315E643-F70A-4582-8B4E-ED86CD458A08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -31,7 +31,7 @@ jobs:
           architecture: 'x64'
       - name: Change package version
         run: |
-          python -c "from urllib.request import urlretrieve; urlretrieve('https://raw.githubusercontent.com/il-katta/jenkins-libs/master/resources/it/loopback/jenkins/projedit.py', 'projedit.py')"
+          python -c "import urllib.request; urllib.request.urlretrieve('https://raw.githubusercontent.com/il-katta/jenkins-libs/master/resources/it/loopback/jenkins/projedit.py', 'projedit.py')"
           foreach ($file in (Get-ChildItem ./ACUtils*/*.csproj) ) { 
             $version = python projedit.py netstandard $file
             Write-Output "::set-output name=PROJECT_VERSION::$version"
@@ -45,6 +45,14 @@ jobs:
         run: |
           msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Restore"
           msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Rebuild"
+
+      - name: Commit deploy
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ./ACUtils*/*.csproj
+          git commit -m "deploy"
+          git push
 
       - name: Archive Nuget packages
         uses: actions/upload-artifact@v3
@@ -64,17 +72,9 @@ jobs:
             dist/*.nupkg
             dist/*.snupkg
 
-      - name: Commit deploy
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add ./ACUtils*/*.csproj
-          git commit -m "deploy"
-          git push
-
       - name: Publish
         run: |
           foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 
-            nuget push $file -Source https://api.nuget.org/v3/index.json  -SkipDuplicate
+            nuget push $file -Source https://api.nuget.org/v3/index.json -SkipDuplicate
           }
 
