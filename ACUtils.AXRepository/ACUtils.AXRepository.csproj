@@ -35,12 +35,15 @@
   <ItemGroup>
     <Reference Include="Abletech.Arxivar.Client.PlugIn">
       <HintPath>Lib\Abletech.Arxivar.Client.PlugIn.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Abletech.Arxivar.Client.WCFConnector">
       <HintPath>Lib\Abletech.Arxivar.Client.WCFConnector.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Abletech.Arxivar.Entities">
       <HintPath>Lib\Abletech.Arxivar.Entities.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>

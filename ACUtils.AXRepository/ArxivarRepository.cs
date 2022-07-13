@@ -12,7 +12,18 @@ using Abletech.Arxivar.Entities.Enums;
 using Abletech.Arxivar.Entities.Libraries;
 
 using ACUtils.AXRepository.ArxivarNext.Model;
+using ACUtils.AXRepository.ArxivarNextManagement.Model;
 using ACUtils.AXRepository.Exceptions;
+using AuthorityDataDTO = ACUtils.AXRepository.ArxivarNext.Model.AuthorityDataDTO;
+using DocumentTypeSearchFilterDto = ACUtils.AXRepository.ArxivarNext.Model.DocumentTypeSearchFilterDto;
+using FolderDTO = ACUtils.AXRepository.ArxivarNext.Model.FolderDTO;
+using NoteDTO = ACUtils.AXRepository.ArxivarNext.Model.NoteDTO;
+using PostProfilationActionDTO = ACUtils.AXRepository.ArxivarNext.Model.PostProfilationActionDTO;
+using RowSearchResult = ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult;
+using UserCompleteDTO = ACUtils.AXRepository.ArxivarNext.Model.UserCompleteDTO;
+using UserInsertDTO = ACUtils.AXRepository.ArxivarNext.Model.UserInsertDTO;
+using UserProfileDTO = ACUtils.AXRepository.ArxivarNext.Model.UserProfileDTO;
+using UserUpdateDTO = ACUtils.AXRepository.ArxivarNext.Model.UserUpdateDTO;
 
 namespace ACUtils.AXRepository
 {
@@ -59,6 +70,16 @@ namespace ACUtils.AXRepository
         private ArxivarNext.Client.Configuration configuration
         {
             get => new ArxivarNext.Client.Configuration()
+            {
+                ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
+                ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
+                BasePath = _api_url,
+            };
+        }
+
+        private ArxivarNextManagement.Client.Configuration configurationManagement
+        {
+            get => new ArxivarNextManagement.Client.Configuration()
             {
                 ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
                 ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
@@ -792,7 +813,7 @@ namespace ACUtils.AXRepository
             var searchApi = new ArxivarNext.Api.SearchesApi(configuration);
             var select = searchApi.SearchesGetSelect();
             select.Fields.Select("CLASSEDOC");
-            return foldersApi.FoldersGetDocumentsById(select:select, id:id);
+            return foldersApi.FoldersGetDocumentsById(select: select, id: id);
         }
 
         public int GetFascicoloLevel(int id)
@@ -843,19 +864,19 @@ namespace ACUtils.AXRepository
             // rimuovi dalla cartella precedente
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber },id: parent_folder);
+                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id: parent_folder);
             }
             catch { }
 
             // rimuove se già presente 
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id:folder_id);
+                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id: folder_id);
             }
             catch { }
 
             // aggiungi alla cartella di destinazione
-            foldersApi.FoldersInsertDocnumbers(docnumbers: new List<int?>() { docnumber }, id:folder_id);
+            foldersApi.FoldersInsertDocnumbers(docnumbers: new List<int?>() { docnumber }, id: folder_id);
         }
 
         #endregion
@@ -872,15 +893,15 @@ namespace ACUtils.AXRepository
         }
 
         public bool UserCreateIfNotExists(
-            string username, 
-            string aoo, 
-            string description, 
-            string default_password, 
-            string email = null, 
-            string lang = "it", 
+            string username,
+            string aoo,
+            string description,
+            string default_password,
+            string email = null,
+            string lang = "it",
             int tipo = 1,
             bool must_change_password = true,
-            bool workflow= true
+            bool workflow = true
         )
         {
             try
@@ -888,14 +909,14 @@ namespace ACUtils.AXRepository
                 if (!UserExists(aoo, username))
                 {
                     return UserCreate(
-                        username: username, 
-                        aoo: aoo, 
-                        description: description, 
-                        default_password: default_password, 
-                        email: email, 
-                        lang: lang, 
+                        username: username,
+                        aoo: aoo,
+                        description: description,
+                        defaultPassword: default_password,
+                        email: email,
+                        lang: lang,
                         tipo: tipo,
-                        must_change_password: must_change_password,
+                        mustChangePassword: must_change_password,
                         workflow: workflow
                    );
                 }
@@ -909,7 +930,7 @@ namespace ACUtils.AXRepository
         }
 
 
-        public bool UserExists(string aoo, string username)
+        public bool UserExists_Wcf(string aoo, string username)
         {
             using (var manager = GetWcf())
             {
@@ -918,7 +939,9 @@ namespace ACUtils.AXRepository
             }
         }
 
-        public bool UserCreate(
+
+
+        public bool UserCreate_Wcf(
             string username,
             string aoo,
             string description,
@@ -994,7 +1017,120 @@ namespace ACUtils.AXRepository
             return userApi.UsersGet_0();
         }
 
-        public void User_Update(UserCompleteDTO user)
+
+        public UserInfoDTO UserGet(string aoo, string username)
+        {
+            Login();
+            var userSearchApi = new ArxivarNext.Api.UserSearchApi(configuration);
+            var select = userSearchApi.UserSearchGetSelect();
+            select.Fields.Select("UTENTE");
+            var search = userSearchApi.UserSearchGetSearch();
+            search.StringFields.Set("DESCRIPTION", username);
+            search.StringFields.Set("AOO", aoo);
+            var result = userSearchApi.UserSearchPostSearch(new UserSearchCriteriaDTO(selectDto: select, searchDto: search)).FirstOrDefault();
+            if (result == null)
+            {
+                throw new NotFoundException($"user '{aoo}\\{username}' not found");
+            }
+
+            var userApi = new ArxivarNext.Api.UsersApi(configuration);
+            return userApi.UsersGet(System.Convert.ToInt32(
+                result.Columns.First(e => e.Id == "USER").Value
+            ));
+        }
+
+        public bool UserExists(string aoo, string username)
+        {
+            try
+            {
+                UserGet(aoo, username);
+                return true;
+            }
+            catch (NotFoundException)
+            {
+                return false;
+            }
+        }
+
+        public bool UserCreate(
+            string username,
+            string aoo,
+            string description,
+            string defaultPassword,
+            string email = null,
+            string lang = "IT",
+            int tipo = 1,
+            bool mustChangePassword = true,
+            bool workflow = true,
+            IEnumerable<string> groups = null
+        )
+        {
+            this._logger?.Information($"Creazione utente {username}");
+            Login();
+            var userApi = new ArxivarNext.Api.UsersApi(configuration);
+            var usersManagementApi = new ArxivarNextManagement.Api.UsersManagementApi(configurationManagement);
+
+            var newUser = userApi.UsersInsert(
+                new UserInsertDTO()
+                {
+                    Password = defaultPassword,
+                    Description = username,
+                    CompleteDescription = description,
+                    Email = email,
+                    Workflow = workflow,
+                    MustChangePassword = mustChangePassword ? 1 : 0,
+                    PasswordChange = true,
+                    Type = tipo,
+                    Viewer = 0,
+                    Group = 2,
+                    UserState = 1,
+                    BusinessUnit = aoo,
+                    Lang = lang,
+                    DefaultType = 0,
+                    Type2 = 0,
+                    Type3 = 0,
+                }
+            );
+            if (groups != null)
+            {
+                var existingGroups = userApi.UsersGetGroups();
+                var newGroups = existingGroups.Where(
+                        group => groups.Select(g => g.ToLower()).Contains(group.CompleteName.ToLower()) ||
+                                 groups.Select(g => g.ToLower()).Contains(group.Description.ToLower())
+                    )
+                    .Select(g => new ArxivarNextManagement.Model.UserSimpleDTO(user: g.Id, description: g.Description))
+                    .ToList();
+                usersManagementApi.UsersManagementSetUserGroups(userId: newUser.User, groups: newGroups);
+            }
+            return true;
+        }
+
+        public bool UserAddGroup(string aoo, string username, string groupName)
+        {
+            Login();
+            var usersManagementApi = new ArxivarNextManagement.Api.UsersManagementApi(configurationManagement);
+            var userApi = new ArxivarNext.Api.UsersApi(configuration);
+
+            var user = UserGet(aoo, username);
+            var existingGroups = userApi.UsersGetGroups();
+            var group = existingGroups.FirstOrDefault(g =>
+                g.Description.Equals(groupName, StringComparison.CurrentCultureIgnoreCase));
+            if (group == null)
+            {
+                throw new NotFoundException($"Arxivar group '{groupName}' not found");
+            }
+            var userGroups = usersManagementApi.UsersManagementGetUserGroups(user.User);
+            if (!userGroups.Any(g => g.Description.Equals(groupName, StringComparison.CurrentCultureIgnoreCase)))
+            {
+
+                userGroups.Add(new UserSimpleDTO(user: group.Id, description: group.Description));
+                usersManagementApi.UsersManagementSetUserGroups(userId: user.User, groups: userGroups);
+                return true;
+            }
+            return false;
+        }
+
+        public void UserUpdate(UserCompleteDTO user)
         {
             Login();
             var userApi = new ArxivarNext.Api.UsersApi(configuration);

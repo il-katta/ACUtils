@@ -187,6 +187,13 @@ namespace ACUtils.AXRepository
         }
 
 
+        public static void Set(this List<FieldBaseForSearchStringDto> fields, string name, object value, int operator_ = 3)
+        {
+            var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+            field.Operator = operator_;
+            field.Valore1 = Convert.ToString(value);
+        }
+
         public static void Set(this List<FieldBaseForSearchDTO> fields, string name, object value, int operator_ = 3)
         {
             var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
