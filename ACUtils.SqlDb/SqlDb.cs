@@ -97,6 +97,19 @@ namespace ACUtils
             DataSet ds = QueryDataSet(connection, queryString);
             return ds.Tables[0];
         }
+
+        public List<T> QueryMany<T>(string sql, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
+        {
+            var dt = QueryDataTable(sql, queryParams);
+            return ACUtils.DBModel<T>.Idrate(dt);
+        }
+
+        public static List<T> QueryMany<T>(SqlConnection connection, string sql, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
+        {
+            var dt = QueryDataTable(connection, sql, queryParams);
+            return ACUtils.DBModel<T>.Idrate(dt);
+        }
+
         #endregion
 
         #region QueryDataSet
@@ -240,6 +253,26 @@ namespace ACUtils
             }
 
             return dt.Rows[0];
+        }
+
+        public T QueryOne<T>(
+            string sql,
+            params KeyValuePair<string, object>[] queryParams
+        ) where T : ACUtils.DBModel<T>, new()
+        {
+            var dr = QueryDataRow(sql, queryParams);
+            return ACUtils.DBModel<T>.Idrate(dr);
+        }
+
+
+        public static T QueryOne<T>(
+            SqlConnection connection,
+            string sql,
+            params KeyValuePair<string, object>[] queryParams
+        ) where T : ACUtils.DBModel<T>, new()
+        {
+            var dr = QueryDataRow(connection, sql, queryParams);
+            return ACUtils.DBModel<T>.Idrate(dr);
         }
 
         #endregion
