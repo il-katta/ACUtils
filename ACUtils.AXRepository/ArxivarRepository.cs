@@ -14,16 +14,7 @@ using Abletech.Arxivar.Entities.Libraries;
 using ACUtils.AXRepository.ArxivarNext.Model;
 using ACUtils.AXRepository.ArxivarNextManagement.Model;
 using ACUtils.AXRepository.Exceptions;
-using AuthorityDataDTO = ACUtils.AXRepository.ArxivarNext.Model.AuthorityDataDTO;
-using DocumentTypeSearchFilterDto = ACUtils.AXRepository.ArxivarNext.Model.DocumentTypeSearchFilterDto;
-using FolderDTO = ACUtils.AXRepository.ArxivarNext.Model.FolderDTO;
-using NoteDTO = ACUtils.AXRepository.ArxivarNext.Model.NoteDTO;
-using PostProfilationActionDTO = ACUtils.AXRepository.ArxivarNext.Model.PostProfilationActionDTO;
-using RowSearchResult = ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult;
-using UserCompleteDTO = ACUtils.AXRepository.ArxivarNext.Model.UserCompleteDTO;
-using UserInsertDTO = ACUtils.AXRepository.ArxivarNext.Model.UserInsertDTO;
-using UserProfileDTO = ACUtils.AXRepository.ArxivarNext.Model.UserProfileDTO;
-using UserUpdateDTO = ACUtils.AXRepository.ArxivarNext.Model.UserUpdateDTO;
+
 
 namespace ACUtils.AXRepository
 {
@@ -32,11 +23,13 @@ namespace ACUtils.AXRepository
         const string STATO_ELIMINATO = "ELIMINATO";
         private string _username;
         private string _password;
-        private string _api_url;
-        private string _app_id;
-        private string _app_secret;
-        private string _wcf_url;
-        private long? _impersonate_user_id;
+        private string _apiUrl;
+        private string _managementUrl;
+        private string _workflowUrl;
+        private string _appId;
+        private string _appSecret;
+        private string _wcfUrl;
+        private long? _impersonateUserId;
 
         private string _token;
         private string _refresh_token;
@@ -46,14 +39,14 @@ namespace ACUtils.AXRepository
 
             var logonRequest = new ArxLogonRequest
             {
-                ClientId = _app_id,
-                ClientSecret = _app_secret,
+                ClientId = _appId,
+                ClientSecret = _appSecret,
                 EnablePushEvents = true,
                 Username = _username,
                 Password = _password,
-                ImpersonateUserId = _impersonate_user_id.HasValue ? System.Convert.ToInt32(_impersonate_user_id) : default(int?)
+                ImpersonateUserId = _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?)
             };
-            var manager = new WCFConnectorManager(_wcf_url, logonRequest)
+            var manager = new WCFConnectorManager(_wcfUrl, logonRequest)
             {
                 AutoChunk = true,      //default a true
                 AutoReconnect = true,  //default a true
@@ -67,53 +60,63 @@ namespace ACUtils.AXRepository
 
         ACUtils.ILogger _logger = null;
 
-        private ArxivarNext.Client.Configuration configuration
-        {
-            get => new ArxivarNext.Client.Configuration()
+        private ArxivarNext.Client.Configuration configuration =>
+            new ArxivarNext.Client.Configuration()
             {
                 ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
                 ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
-                BasePath = _api_url,
+                BasePath = _apiUrl,
             };
-        }
 
-        private ArxivarNextManagement.Client.Configuration configurationManagement
-        {
-            get => new ArxivarNextManagement.Client.Configuration()
+        private ArxivarNextManagement.Client.Configuration configurationManagement =>
+            new ArxivarNextManagement.Client.Configuration()
             {
                 ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
                 ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
-                BasePath = _api_url,
+                BasePath = _managementUrl,
             };
-        }
+
+        private Abletech.WebApi.Client.ArxivarWorkflow.Client.Configuration configurationWorkflow =>
+            new Abletech.WebApi.Client.ArxivarWorkflow.Client.Configuration()
+            {
+                ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
+                ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
+                BasePath = _workflowUrl,
+            };
 
         public ArxivarRepository(
-            string api_url, string username, string password, string app_id, string app_secret,
+            string apiUrl, string managementUrl, string workflowUrl, string username, string password, string appId, string appSecret,
             string wcf_url = "net.tcp://127.0.0.1:8740/Arxivar/Push",
             ACUtils.ILogger logger = null,
-            long? impersonate_user_id = null
+            long? impersonateUserId = null
         )
         {
-            this._api_url = api_url;
+            this._apiUrl = apiUrl;
+            this._managementUrl = managementUrl;
+            this._workflowUrl = workflowUrl;
             this._username = username;
             this._password = password;
-            this._app_id = app_id;
-            this._app_secret = app_secret;
+            this._appId = appId;
+            this._appSecret = appSecret;
             this._logger = logger;
-            this._wcf_url = wcf_url;
-            this._impersonate_user_id = impersonate_user_id;
+            this._wcfUrl = wcf_url;
+            this._impersonateUserId = impersonateUserId;
         }
 
 
         public ArxivarRepository(
-           string api_url,
-           string auth_token,
+           string apiUrl,
+           string managementUrl, 
+           string workflowUrl,
+           string authToken,
            ACUtils.ILogger logger = null
         )
         {
-            this._api_url = api_url;
+            this._apiUrl = apiUrl;
+            this._managementUrl = managementUrl;
+            this._workflowUrl = workflowUrl;
             this._logger = logger;
-            _token = auth_token;
+            _token = authToken;
         }
 
         #region file upload
@@ -162,7 +165,7 @@ namespace ACUtils.AXRepository
         #endregion
 
         #region user
-        public UserProfileDTO GetUserAddressBookEntry(string username, int type = 0)
+        public ACUtils.AXRepository.ArxivarNext.Model.UserProfileDTO GetUserAddressBookEntry(string username, int type = 0)
         {
             Login();
 
@@ -190,14 +193,14 @@ namespace ACUtils.AXRepository
         {
             if (string.IsNullOrEmpty(_token)) // TODO: test se è necessario il refresh del token
             {
-                var authApi = new ArxivarNext.Api.AuthenticationApi(_api_url);
+                var authApi = new ArxivarNext.Api.AuthenticationApi(_apiUrl);
                 var auth = authApi.AuthenticationGetToken(
                     new AuthenticationTokenRequestDTO(
                         username: _username,
                         password: _password,
-                        clientId: _app_id,
-                        clientSecret: _app_secret,
-                        impersonateUserId: _impersonate_user_id.HasValue ? System.Convert.ToInt32(_impersonate_user_id) : default(int?)
+                        clientId: _appId,
+                        clientSecret: _appSecret,
+                        impersonateUserId: _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?)
                     )
                 );
                 _token = auth.AccessToken;
@@ -229,7 +232,7 @@ namespace ACUtils.AXRepository
 
         #region profile - search
 
-        public List<RowSearchResult> Search<T>(AXModel<T> model, bool eliminato = false) where T : AXModel<T>, new()
+        public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> Search<T>(AXModel<T> model, bool eliminato = false) where T : AXModel<T>, new()
         {
             var searchValues = model.GetPrimaryKeys();
             var classeDoc = model.GetArxivarAttribute().DocumentType;
@@ -239,7 +242,7 @@ namespace ACUtils.AXRepository
                 eliminato: eliminato
             );
         }
-        public List<RowSearchResult> Search(string classeDoc, Dictionary<string, object> searchValues = null, bool eliminato = false, bool selectAll = false)
+        public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> Search(string classeDoc, Dictionary<string, object> searchValues = null, bool eliminato = false, bool selectAll = false)
         {
             Login();
             var profileApi = new ArxivarNext.Api.ProfilesApi(configuration);
@@ -266,7 +269,7 @@ namespace ACUtils.AXRepository
             defaultSelect.Fields.Select("WORKFLOW");
             defaultSelect.Fields.Select("DOCNUMBER");
 
-            filterSearch.Fields.Set("DOCUMENTTYPE", new DocumentTypeSearchFilterDto(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3));
+            filterSearch.Fields.Set("DOCUMENTTYPE", new ACUtils.AXRepository.ArxivarNext.Model.DocumentTypeSearchFilterDto(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3));
 
             var additionals = searchApi.SearchesGetAdditionalByClasse(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3, aoo.Code);
             filterSearch.Fields.AddRange(additionals);
@@ -547,10 +550,10 @@ namespace ACUtils.AXRepository
 
             var profileDto = profileApi.ProfilesGet_0();
             profileDto.Attachments = new List<string>();
-            profileDto.AuthorityData = new AuthorityDataDTO();
-            profileDto.Notes = new List<NoteDTO>();
+            profileDto.AuthorityData = new ACUtils.AXRepository.ArxivarNext.Model.AuthorityDataDTO();
+            profileDto.Notes = new List<ACUtils.AXRepository.ArxivarNext.Model.NoteDTO>();
             profileDto.PaNotes = new List<string>();
-            profileDto.PostProfilationActions = new List<PostProfilationActionDTO>();
+            profileDto.PostProfilationActions = new List<ACUtils.AXRepository.ArxivarNext.Model.PostProfilationActionDTO>();
             profileDto.Document = new FileDTO() { BufferIds = bufferId };
 
 
@@ -805,7 +808,7 @@ namespace ACUtils.AXRepository
 
         #region fascioli
 
-        public List<RowSearchResult> GetFascicoloDocuments(int id)
+        public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> GetFascicoloDocuments(int id)
         {
             Login();
 
@@ -824,7 +827,7 @@ namespace ACUtils.AXRepository
             return folderInfo.FullPath.Count(f => f == '\\');
         }
 
-        public List<FolderDTO> GetFascoloFiglio(int id, string name)
+        public List<ACUtils.AXRepository.ArxivarNext.Model.FolderDTO> GetFascoloFiglio(int id, string name)
         {
             Login();
             var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
@@ -1010,7 +1013,7 @@ namespace ACUtils.AXRepository
         #endregion
 
         #region users
-        public List<UserCompleteDTO> Users()
+        public List<ACUtils.AXRepository.ArxivarNext.Model.UserCompleteDTO> Users()
         {
             Login();
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
@@ -1071,7 +1074,7 @@ namespace ACUtils.AXRepository
             var usersManagementApi = new ArxivarNextManagement.Api.UsersManagementApi(configurationManagement);
 
             var newUser = userApi.UsersInsert(
-                new UserInsertDTO()
+                new ACUtils.AXRepository.ArxivarNext.Model.UserInsertDTO()
                 {
                     Password = defaultPassword,
                     Description = username,
@@ -1166,11 +1169,11 @@ namespace ACUtils.AXRepository
             return false;
         }
 
-        public void UserUpdate(UserCompleteDTO user)
+        public void UserUpdate(ACUtils.AXRepository.ArxivarNext.Model.UserCompleteDTO user)
         {
             Login();
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
-            var update = new UserUpdateDTO()
+            var update = new ACUtils.AXRepository.ArxivarNext.Model.UserUpdateDTO()
             {
                 User = user.User,
                 Group = user.Group,
@@ -1238,5 +1241,6 @@ namespace ACUtils.AXRepository
         {
             File.WriteAllBytes(filepath, stream);
         }
+
     }
 }
