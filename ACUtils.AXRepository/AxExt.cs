@@ -9,6 +9,17 @@ namespace ACUtils.AXRepository
 {
     public static class AxExt
     {
+
+        public static EditProfileSchemaDTO SetState(this EditProfileSchemaDTO self, string stateName)
+        {
+            self.SetState(stateName);
+            return self;
+        }
+        public static MaskProfileSchemaDTO SetState(this MaskProfileSchemaDTO self, string stateName)
+        {
+            self.SetState(stateName);
+            return self;
+        }
         public static void SetState(this List<FieldBaseDTO> fields, string stateName)
         {
             var stateFiled = ((StateFieldDTO)fields.FirstOrDefault(i =>
@@ -17,21 +28,29 @@ namespace ACUtils.AXRepository
             stateFiled.Value = stateName;
         }
 
-        public static DocumentTypeBaseDTO SetDocumentType(this List<FieldBaseDTO> fields, ArxivarNext.Client.Configuration configuration, string aooCode, string doc_type)
+        public static DocumentTypeBaseDTO SetDocumentType(this MaskProfileSchemaDTO self, ArxivarNext.Client.Configuration configuration, string aooCode, string docType)
+        {
+            return self.Fields.SetDocumentType(
+                configuration: configuration,
+                aooCode: aooCode,
+                docType: docType
+            );
+        }
+        public static DocumentTypeBaseDTO SetDocumentType(this List<FieldBaseDTO> fields, ArxivarNext.Client.Configuration configuration, string aooCode, string docType)
         {
             var docTypesApi = new ArxivarNext.Api.DocumentTypesApi(configuration);
             var doctypes = docTypesApi.DocumentTypesGetOld(1, aooCode); // TODO: deprecated method
             try
             {
                 DocumentTypeBaseDTO classeDoc = doctypes.First(i =>
-                    i.Key.Equals(doc_type, StringComparison.CurrentCultureIgnoreCase)
+                    i.Key.Equals(docType, StringComparison.CurrentCultureIgnoreCase)
                 );
                 fields.SetDocumentType(classeDoc.Id.Value);
                 return classeDoc;
             }
             catch (InvalidOperationException e)
             {
-                throw new ApiError($"classe doc '{doc_type}' non trovata", e);
+                throw new ApiError($"classe doc '{docType}' non trovata", e);
             }
         }
 
@@ -41,6 +60,10 @@ namespace ACUtils.AXRepository
             docTypeField.Value = doc_type;
         }
 
+        public static string GetDocumentType(this EditProfileSchemaDTO self)
+        {
+            return self.Fields.GetDocumentType();
+        }
 
         public static string GetDocumentType(this List<FieldBaseDTO> fields)
         {
@@ -115,6 +138,17 @@ namespace ACUtils.AXRepository
             }
         }
 
+        public static EditProfileSchemaDTO SetField(this EditProfileSchemaDTO self, string name, object value)
+        {
+            self.Fields.SetField(name, value);
+            return self;
+        }
+        public static MaskProfileSchemaDTO SetField(this MaskProfileSchemaDTO self, string name, object value)
+        {
+            self.Fields.SetField(name, value);
+            return self;
+        }
+
         public static void SetField(this List<FieldBaseDTO> fields, string name, object value)
         {
             if (name == "DOCNUMBER")
@@ -174,6 +208,12 @@ namespace ACUtils.AXRepository
             }
         }
 
+        public static MaskProfileSchemaDTO SetToField(this MaskProfileSchemaDTO self, UserProfileDTO value)
+        {
+            self.SetToField(value);
+            return self;
+        }
+
         public static void SetToField(this List<FieldBaseDTO> fields, UserProfileDTO value)
         {
             var field = ((ToFieldDTO)fields.FirstOrDefault(i =>
@@ -186,12 +226,21 @@ namespace ACUtils.AXRepository
             field.Value.Add(value);
         }
 
+        public static MaskProfileSchemaDTO SetFromField(this MaskProfileSchemaDTO self, UserProfileDTO value)
+        {
+            self.SetFromField(value);
+            return self;
+        }
         public static void SetFromField(this List<FieldBaseDTO> fields, UserProfileDTO value)
         {
             fields.SetField("From", value);
         }
 
-
+        public static UserSearchDTO SetString(this UserSearchDTO self, string name, object value, int operator_ = 3)
+        {
+            self.StringFields.Set(name: name, value: value, operator_: operator_);
+            return self;
+        }
         public static void Set(this List<FieldBaseForSearchStringDto> fields, string name, object value, int operator_ = 3)
         {
             var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
@@ -199,6 +248,11 @@ namespace ACUtils.AXRepository
             field.Valore1 = Convert.ToString(value);
         }
 
+        public static SearchDTO Set(this SearchDTO self, string name, object value, int operator_ = 3)
+        {
+            self.Set(name: name, value: value, operator_: operator_);
+            return self;
+        }
         public static void Set(this List<FieldBaseForSearchDTO> fields, string name, object value, int operator_ = 3)
         {
             var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
@@ -225,9 +279,18 @@ namespace ACUtils.AXRepository
             }
         }
 
+        public static ColumnSearchResult Get(this RowSearchResult self, string name)
+        {
+            return self.Columns.Get(name);
+        }
         public static ColumnSearchResult Get(this List<ColumnSearchResult> results, string name)
         {
             return results.First(i => i.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        public static T GetValue<T>(this RowSearchResult self, string name)
+        {
+            return self.Columns.GetValue<T>(name);
         }
         public static T GetValue<T>(this List<ColumnSearchResult> results, string name)
         {
@@ -239,6 +302,12 @@ namespace ACUtils.AXRepository
             {
                 return (T)System.Convert.ChangeType(results.Get(name).Value, typeof(T));
             }
+        }
+
+        public static SelectDTO Select(this SelectDTO self, string name)
+        {
+            self.Select(name);
+            return self;
         }
 
         public static List<FieldBaseForSelectDTO> Select(this List<FieldBaseForSelectDTO> fields, string name)

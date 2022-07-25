@@ -223,7 +223,7 @@ namespace ACUtils.AXRepository
                 externalId: addressBook.ExternalCode,
                 description: addressBook.BusinessName,
                 docNumber: "-1",
-                type: (int) type,
+                type: (int)type,
                 contactId: addressBook.Id,
                 fax: addressBook.Fax,
                 address: addressBook.Address,
@@ -334,20 +334,19 @@ namespace ACUtils.AXRepository
 
             var classeDocumento = docTypes.First(i => i.Key == classeDoc);
 
-            var filterSearch = searchApi.SearchesGet();
+            var filterSearch = searchApi.SearchesGet()
+                .Set("DOCUMENTTYPE", new ACUtils.AXRepository.ArxivarNext.Model.DocumentTypeSearchFilterDto(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3)); ;
             //var defaultSelect = searchApi.SearchesGetSelect_0(classeDocumento.Id);
-            var defaultSelect = searchApi.SearchesGetSelect_1(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3);
+            var defaultSelect = searchApi.SearchesGetSelect_1(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3)
+                .Select("WORKFLOW")
+                .Select("DOCNUMBER");
             /*
             foreach (var axfield in model.GetArxivarFields())
             {
-                defaultSelect.Fields.Select(axfield.Key);
+                defaultSelect.Select(axfield.Key);
             }
             */
 
-            defaultSelect.Fields.Select("WORKFLOW");
-            defaultSelect.Fields.Select("DOCNUMBER");
-
-            filterSearch.Fields.Set("DOCUMENTTYPE", new ACUtils.AXRepository.ArxivarNext.Model.DocumentTypeSearchFilterDto(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3));
 
             var additionals = searchApi.SearchesGetAdditionalByClasse(classeDocumento.DocumentType, classeDocumento.Type2, classeDocumento.Type3, aoo.Code);
             filterSearch.Fields.AddRange(additionals);
@@ -356,7 +355,7 @@ namespace ACUtils.AXRepository
             {
                 foreach (var kv in searchValues)
                 {
-                    filterSearch.Fields.Set(kv.Key, kv.Value);
+                    filterSearch.Set(kv.Key, kv.Value);
                 }
             }
 
@@ -365,14 +364,14 @@ namespace ACUtils.AXRepository
                 foreach (var field in defaultSelect.Fields)
                 {
                     if (field.FieldType == 2)
-                        defaultSelect.Fields.Select(field.Name);
+                        defaultSelect.Select(field.Name);
                 }
             }
 
 
             if (!eliminato)
             {
-                filterSearch.Fields.Set("Stato", STATO_ELIMINATO, 2); // diverso da ELIMINATO
+                filterSearch.Set("Stato", STATO_ELIMINATO, 2); // diverso da ELIMINATO
             }
 
             var values = searchApi.SearchesPostSearch(new SearchCriteriaDto(filterSearch, defaultSelect));
@@ -397,8 +396,8 @@ namespace ACUtils.AXRepository
                         //     Intero con segno che indica i valori relativi di x e y, come illustrato nella
                         //     tabella seguente. Valore Significato Minore di zero x è minore di y. Zero x è
                         //     uguale a y. Maggiore di zero x è maggiore di y.
-                        var xVal = (int)x.Columns.Get("DOCNUMBER").Value;
-                        var yVal = (int)y.Columns.Get("DOCNUMBER").Value;
+                        var xVal = x.GetValue<int>("DOCNUMBER");
+                        var yVal = y.GetValue<int>("DOCNUMBER");
                         return xVal.CompareTo(yVal);
                     });
                 }
@@ -413,7 +412,7 @@ namespace ACUtils.AXRepository
                 throw new NotFoundException($"La ricerca ha ricevuto nessun risultato");
             }
 
-            var docNumber = (int)values.First().Columns.Get("DOCNUMBER").Value;
+            var docNumber = (int)values.First().Get("DOCNUMBER").Value;
             return docNumber;
         }
         public int GetDocumentNumber<T>(AXModel<T> model, bool eliminato = false, bool getFirst = false) where T : AXModel<T>, new()
@@ -462,7 +461,7 @@ namespace ACUtils.AXRepository
 
                         var taskworkhistoryapi = new ArxivarNext.Api.TaskWorkHistoryApi(configuration);
                         var history = taskworkhistoryapi.TaskWorkHistoryGetHistoryByProcessId(processId);
-                        if (!history.Where(r => !r.Columns.GetValue<DateTime?>("CONCLUSO").HasValue).Any()) // WTF? controllare questa condizione
+                        if (!history.Where(r => !r.GetValue<DateTime?>("CONCLUSO").HasValue).Any()) // WTF? controllare questa condizione
                         {
                             DeleteWorkflow(processId);
                         }
@@ -481,12 +480,12 @@ namespace ACUtils.AXRepository
 
             if (model.DataDoc.HasValue)
             {
-                profileDto.Fields.SetField("DataDoc", model.DataDoc.Value);
+                profileDto.SetField("DataDoc", model.DataDoc.Value);
             }
 
             if (!string.IsNullOrEmpty(model.STATO))
             {
-                profileDto.Fields.SetState(model.STATO);
+                profileDto.SetState(model.STATO);
             }
 
             /*
@@ -499,7 +498,7 @@ namespace ACUtils.AXRepository
 
             foreach (var field in model.GetArxivarFields())
             {
-                profileDto.Fields.SetField(field.Key, field.Value);
+                profileDto.SetField(field.Key, field.Value);
             }
 
             if (!string.IsNullOrEmpty(model.FilePath))
@@ -575,7 +574,7 @@ namespace ACUtils.AXRepository
 
             var profilesApi = new ArxivarNext.Api.ProfilesApi(configuration);
             var profileDto = profilesApi.ProfilesGetSchema(docNumber, true);
-            profileDto.Fields.SetState(STATO_ELIMINATO);
+            profileDto.SetState(STATO_ELIMINATO);
             profilesApi.ProfilesPut(docNumber, new ProfileDTO()
             {
                 Fields = profileDto.Fields
@@ -647,10 +646,10 @@ namespace ACUtils.AXRepository
                 }
             }
 
-            var classeDoc = profileDto.Fields.SetDocumentType(configuration, aoo.Code, documentType);
+            var classeDoc = profileDto.SetDocumentType(configuration, aoo.Code, documentType);
 
             var status = statesApi.StatesGet(classeDoc.Id);
-            profileDto.Fields.SetState(model.GetArxivarAttribute().Stato ?? status.First().Id);
+            profileDto.SetState(model.GetArxivarAttribute().Stato ?? status.First().Id);
 
 
             var additional = profileApi.ProfilesGetAdditionalByClasse(
@@ -661,19 +660,19 @@ namespace ACUtils.AXRepository
             );
             profileDto.Fields.AddRange(additional);
 
-            profileDto.Fields.SetField("DOCNAME", model.DOCNAME);
+            profileDto.SetField("DOCNAME", model.DOCNAME);
 
             if (model.DataDoc.HasValue)
             {
-                profileDto.Fields.SetField("DataDoc", model.DataDoc.Value);
+                profileDto.SetField("DataDoc", model.DataDoc.Value);
             }
 
             if (!string.IsNullOrEmpty(model.User))
-                profileDto.Fields.SetFromField(GetUserAddressBookEntry(model.User, 1));
+                profileDto.SetFromField(GetUserAddressBookEntry(model.User, 1));
 
             if (!string.IsNullOrEmpty(model.MittenteCodiceRubrica))
             {
-                profileDto.Fields.SetFromField(GetAddressBookEntry(
+                profileDto.SetFromField(GetAddressBookEntry(
                     model.MittenteCodiceRubrica,
                     model.MittenteIdRubrica.GetValueOrDefault(),
                     type: UserProfileType.From
@@ -684,7 +683,7 @@ namespace ACUtils.AXRepository
             {
                 foreach (var destinatario in model.DestinatariCodiceRubrica)
                 {
-                    profileDto.Fields.SetToField(GetAddressBookEntry(
+                    profileDto.SetToField(GetAddressBookEntry(
                         destinatario,
                         model.DestinatariIdRubrica.GetValueOrDefault(),
                         type: UserProfileType.To
@@ -695,11 +694,11 @@ namespace ACUtils.AXRepository
 
             foreach (var field in model.GetArxivarFields())
             {
-                profileDto.Fields.SetField(field.Key, field.Value);
+                profileDto.SetField(field.Key, field.Value);
             }
 
             var stato = model.STATO ?? statesApi.StatesGet(classeDoc.Id).First().Id;
-            profileDto.Fields.SetState(stato);
+            profileDto.SetState(stato);
 
             var newProfile = new ProfileDTO()
             {
@@ -833,7 +832,7 @@ namespace ACUtils.AXRepository
                 try
                 {
                     var profile = profileApi.ProfilesGetSchema(docnumber, false);
-                    var cDocType = profile.Fields.GetDocumentType();
+                    var cDocType = profile.GetDocumentType();
                     if (!targetDocRx.Match(cDocType).Success) continue;
                 }
                 catch
@@ -877,7 +876,7 @@ namespace ACUtils.AXRepository
             {
                 var docnumber = (int)row[docnumber_pos];
                 var profile = profileApi.ProfilesGetSchema(docnumber, false);
-                var cDocType = profile.Fields.GetDocumentType();
+                var cDocType = profile.GetDocumentType();
                 if (targetDocType != cDocType) continue;
                 yield return (docnumber, this.GetProfile<T>(docnumber));
             }
@@ -900,7 +899,7 @@ namespace ACUtils.AXRepository
             Login();
             var taskHistoryApi = new ArxivarNext.Api.TaskWorkHistoryApi(configuration);
             var taskHistory = taskHistoryApi.TaskWorkHistoryGetHistoryByProcessId(processId);
-            var userId = (from task in taskHistory where task.Columns.GetValue<long>("ID") == taskWorkId select task.Columns.GetValue<long>("UTENTE")).First();
+            var userId = (from task in taskHistory where task.GetValue<long>("ID") == taskWorkId select task.Columns.GetValue<long>("UTENTE")).First();
             return userId;
         }
         #endregion
@@ -1072,7 +1071,6 @@ namespace ACUtils.AXRepository
         }
 
 
-
         public bool UserCreate_Wcf(
             string username,
             string aoo,
@@ -1154,21 +1152,22 @@ namespace ACUtils.AXRepository
         {
             Login();
             var userSearchApi = new ArxivarNext.Api.UserSearchApi(configuration);
-            var select = userSearchApi.UserSearchGetSelect();
-            select.Fields.Select("UTENTE");
-            var search = userSearchApi.UserSearchGetSearch();
-            search.StringFields.Set("DESCRIPTION", username);
-            search.StringFields.Set("AOO", aoo);
+            
+            var select = userSearchApi.UserSearchGetSelect()
+                .Select("UTENTE");
+
+            var search = userSearchApi.UserSearchGetSearch()
+                .SetString("DESCRIPTION", username)
+                .SetString("AOO", aoo);
+
             var result = userSearchApi.UserSearchPostSearch(new UserSearchCriteriaDTO(selectDto: select, searchDto: search)).FirstOrDefault();
             if (result == null)
             {
                 throw new NotFoundException($"user '{aoo}\\{username}' not found");
             }
-
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
-            return userApi.UsersGet(System.Convert.ToInt32(
-                result.Columns.First(e => e.Id == "USER").Value
-            ));
+            var userId = result.Columns.GetValue<int>("UTENTE");
+            return userApi.UsersGet(userId);
         }
 
         public bool UserExists(string aoo, string username)
