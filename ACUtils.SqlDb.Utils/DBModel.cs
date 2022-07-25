@@ -202,18 +202,23 @@ namespace ACUtils
 
         }
 
-        protected void setValue(string key, object value, Type colType = null)
+        protected virtual void setValue(string key, object value, Type colType = null)
         {
             var property = this.GetType().GetProperty(key);
             var sourceType = value?.GetType();
             var targetType = property.PropertyType;
 
-            if (!property.CanWrite) return;
+            if (!property.CanWrite)
+                return;
 
             // NULL value
             if (value == DBNull.Value || value == null)
             {
                 property.SetValue(this, null);
+            }
+            else if (targetType.IsAssignableFrom(sourceType))
+            {
+                property.SetValue(this, value);
             }
             // boolean
             else if (targetType == typeof(bool) || targetType == typeof(bool?))
