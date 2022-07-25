@@ -106,7 +106,7 @@ namespace ACUtils.AXRepository
 
         public ArxivarRepository(
            string apiUrl,
-           string managementUrl, 
+           string managementUrl,
            string workflowUrl,
            string authToken,
            ACUtils.ILogger logger = null
@@ -187,6 +187,81 @@ namespace ACUtils.AXRepository
 
         #endregion
 
+        #region address book
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="codice"></param>
+        /// <param name="addressBookCategoryId"></param>
+        /// <param name="type">Possible values:  To => 0 | From => 1 |  CC => 2 | Senders => 3</param>
+        /// <returns></returns>
+        public ACUtils.AXRepository.ArxivarNext.Model.UserProfileDTO GetAddressBookEntry(string codice, int addressBookCategoryId, UserProfileType type = UserProfileType.To)
+        {
+            Login();
+
+            var addressBookApi = new ArxivarNext.Api.AddressBookApi(configuration);
+            var filter = addressBookApi.AddressBookGetSearchField();
+            var select = addressBookApi.AddressBookGetSelectField();
+            select.Select("DM_RUBRICA_CODICE");
+            select.Select("DM_RUBRICA_AOO");
+            select.Select("DM_RUBRICA_CODICE");
+            select.Select("ID");
+
+            var result = addressBookApi.AddressBookPostSearch(new AddressBookSearchCriteriaDTO(
+                filter: codice,
+                addressBookCategoryId: addressBookCategoryId,
+                filterFields: filter,
+                selectFields: select
+            ));
+
+            var addressBookId = result.Data.First().Columns.GetValue<int>("ID");
+            var addressBook = addressBookApi.AddressBookGetById(addressBookId: addressBookId);
+            return new ArxivarNext.Model.UserProfileDTO(
+                id: addressBook.Id,
+                externalId: addressBook.ExternalCode,
+                description: addressBook.BusinessName,
+                docNumber: "-1",
+                type: (int) type,
+                contactId: addressBook.Id,
+                fax: addressBook.Fax,
+                address: addressBook.Address,
+                postalCode: addressBook.PostalCode,
+                contact: "",
+                job: "",
+                locality: addressBook.Location,
+                province: addressBook.Province,
+                phone: addressBook.PhoneNumber,
+                mobilePhone: addressBook.CellPhone,
+                telName: "",
+                faxName: "",
+                house: "",
+                department: "",
+                reference: "",
+                office: "",
+                vat: "",
+                mail: "",
+                priority: "N", // addressBook.Priority,
+                code: null,
+                email: addressBook.Email,
+                fiscalCode: addressBook.FiscalCode,
+                nation: addressBook.Country,
+                addressBookId: addressBook.Id,
+                society: "",
+                officeCode: "",
+                publicAdministrationCode: "",
+                pecAddressBook: "",
+                feaEnabled: false,
+                feaExpireDate: null,
+                firstName: "",
+                lastName: "",
+                pec: ""
+            );
+
+
+        }
+        #endregion
 
         #region auth
         private void Login()
@@ -232,15 +307,18 @@ namespace ACUtils.AXRepository
 
         #region profile - search
 
-        public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> Search<T>(AXModel<T> model, bool eliminato = false) where T : AXModel<T>, new()
+        public List<T> Search<T>(AXModel<T> model, bool eliminato = false) where T : AXModel<T>, new()
         {
             var searchValues = model.GetPrimaryKeys();
             var classeDoc = model.GetArxivarAttribute().DocumentType;
-            return Search(
+            var result = Search(
                 classeDoc: classeDoc,
                 searchValues: searchValues,
                 eliminato: eliminato
             );
+
+            var profiles = result.Select(s => GetProfile<T>(s.Columns.GetValue<int>("DOCNUMBER"))).ToList();
+            return profiles;
         }
         public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> Search(string classeDoc, Dictionary<string, object> searchValues = null, bool eliminato = false, bool selectAll = false)
         {
@@ -358,16 +436,18 @@ namespace ACUtils.AXRepository
         /// <param name="model"></param>
         /// <param name="taskid">se il documento è sottoposto a workflow è necessario passare anche il numero di task</param>
         /// <param name="procdocid">se il documento è sottoposto a workflow è necessario passare anche il numero di processo</param>
+        /// <param name="checkInOption"></param>
+        /// <param name="killWorkflow"></param>
         /// <returns></returns>
         public long? UpdateProfile<T>(AXModel<T> model, int? taskid = null, int? procdocid = null, int checkInOption = 0, bool killWorkflow = false) where T : AXModel<T>, new()
         {
             Login();
             List<string> bufferIds = new List<string>();
-            var docValues = Search<T>(model).First();
-            var workflow = System.Convert.ToInt64(docValues.Columns.Get("WORKFLOW").Value ?? 0);
+            var doc = Search<T>(model).First();
+            var workflow = System.Convert.ToInt64(doc.Workflow ?? false);
 
             //var docNumber = model.DOCNUMBER ?? GetDocumentNumber(model);
-            var docNumber = model.DOCNUMBER ?? (int)docValues.Columns.Get("DOCNUMBER").Value;
+            var docNumber = model.DOCNUMBER ?? doc.DOCNUMBER;
 
             if (workflow == 1 && killWorkflow)
             {
@@ -404,8 +484,10 @@ namespace ACUtils.AXRepository
                 profileDto.Fields.SetField("DataDoc", model.DataDoc.Value);
             }
 
-            if (!string.IsNullOrEmpty(model.GetArxivarAttribute().Stato))
-                profileDto.Fields.SetState(model.GetArxivarAttribute().Stato);
+            if (!string.IsNullOrEmpty(model.STATO))
+            {
+                profileDto.Fields.SetState(model.STATO);
+            }
 
             /*
             try
@@ -435,7 +517,7 @@ namespace ACUtils.AXRepository
                     //var select = taskWorkApi.TaskWorkGetDefaultSelect();
                     //var tasks = taskWorkApi.TaskWorkGetActiveTaskWork(select, System.Convert.ToInt32(docNumber));
                     //var taskWork = taskWorkApi.TaskWorkGetTaskWorkById(taskid);
-                    checkInOutApi.CheckInOutCheckOutForTask(processDocId: procdocid, taskWorkId: taskid);
+                    //checkInOutApi.CheckInOutCheckOutForTask(processDocId: procdocid, taskWorkId: taskid);
                 }
                 else
                 {
@@ -455,8 +537,8 @@ namespace ACUtils.AXRepository
                     checkInOutApi.CheckInOutCheckIn(
                         docnumber: System.Convert.ToInt32(docNumber),
                         fileId: bufferIds.First(),
-                        checkInOption,
-                        true
+                        option: checkInOption,
+                        undoCheckOut: true
                     );
                 }
 
@@ -529,7 +611,7 @@ namespace ACUtils.AXRepository
                     }
                     else
                     {
-                        return System.Convert.ToInt32(search.First().Columns.GetValue<long>("DOCNUMBER"));
+                        return System.Convert.ToInt32(search.First().DOCNUMBER);
                     }
                 }
             }
@@ -586,21 +668,38 @@ namespace ACUtils.AXRepository
                 profileDto.Fields.SetField("DataDoc", model.DataDoc.Value);
             }
 
-            try
-            {
-                if (!string.IsNullOrEmpty(model.User))
-                    profileDto.Fields.SetFromField(GetUserAddressBookEntry(model.User, 1));
-            }
-            catch (Exception e)
-            {
+            if (!string.IsNullOrEmpty(model.User))
+                profileDto.Fields.SetFromField(GetUserAddressBookEntry(model.User, 1));
 
-                Console.WriteLine(e);
+            if (!string.IsNullOrEmpty(model.MittenteCodiceRubrica))
+            {
+                profileDto.Fields.SetFromField(GetAddressBookEntry(
+                    model.MittenteCodiceRubrica,
+                    model.MittenteIdRubrica.GetValueOrDefault(),
+                    type: UserProfileType.From
+                ));
             }
+
+            if (model.DestinatariCodiceRubrica != null)
+            {
+                foreach (var destinatario in model.DestinatariCodiceRubrica)
+                {
+                    profileDto.Fields.SetToField(GetAddressBookEntry(
+                        destinatario,
+                        model.DestinatariIdRubrica.GetValueOrDefault(),
+                        type: UserProfileType.To
+                    ));
+                }
+            }
+
 
             foreach (var field in model.GetArxivarFields())
             {
                 profileDto.Fields.SetField(field.Key, field.Value);
             }
+
+            var stato = model.STATO ?? statesApi.StatesGet(classeDoc.Id).First().Id;
+            profileDto.Fields.SetState(stato);
 
             var newProfile = new ProfileDTO()
             {
@@ -808,7 +907,7 @@ namespace ACUtils.AXRepository
 
         #region fascioli
 
-        public List<ACUtils.AXRepository.ArxivarNext.Model.RowSearchResult> GetFascicoloDocuments(int id)
+        public List<ArxivarNext.Model.RowSearchResult> GetFascicoloDocuments(int id)
         {
             Login();
 
@@ -816,7 +915,7 @@ namespace ACUtils.AXRepository
             var searchApi = new ArxivarNext.Api.SearchesApi(configuration);
             var select = searchApi.SearchesGetSelect();
             select.Fields.Select("CLASSEDOC");
-            return foldersApi.FoldersGetDocumentsById(select: select, id: id);
+            return foldersApi.FoldersGetDocumentsById(id, select);
         }
 
         public int GetFascicoloLevel(int id)
@@ -827,12 +926,13 @@ namespace ACUtils.AXRepository
             return folderInfo.FullPath.Count(f => f == '\\');
         }
 
-        public List<ACUtils.AXRepository.ArxivarNext.Model.FolderDTO> GetFascoloFiglio(int id, string name)
+        public List<ArxivarNext.Model.FolderDTO> GetFascoloFiglio(int id, string name)
         {
             Login();
             var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
             return foldersApi.FoldersFindInFolderByName(id, name);
         }
+
 
         public List<int> FascicoliGetByDocnumber(int docnumber)
         {
@@ -842,44 +942,73 @@ namespace ACUtils.AXRepository
             return folders.Where(f => f.Id.HasValue).Select(f => f.Id.Value).ToList();
         }
 
-        public void FascicoliMoveToSubfolder(int parent_folder, string subfoldername, int docnumber)
+        public int FascicoliFolderExists(int parentFolder, string subfolderName)
         {
             Login();
             var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
 
-            var folders = foldersApi.FoldersGetByParentId(parent_folder);
+            var folders = foldersApi.FoldersGetByParentId(parentFolder);
 
-            var folderSearch = folders.Where(f => f.Name.ToLower().Equals(subfoldername.ToLower()));
-            var folder_exists = folderSearch.Any();
-
-            var folder_id = 0;
-
-            if (!folder_exists)
+            var folderSearch = folders.Where(f => f.Name.ToLower().Equals(subfolderName.ToLower()));
+            if (folderSearch.Any())
             {
-                var newfodler = foldersApi.FoldersNew(parentId: parent_folder, name: subfoldername);
-                folder_id = newfodler.Id.Value;
+                return folderSearch.First().Id.GetValueOrDefault();
             }
             else
             {
-                folder_id = folderSearch.First().Id.Value;
+                return 0;
             }
+        }
+
+        public int FascicoliCreateFolder(int parentFolder, string subfodlerName)
+        {
+            Login();
+            var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
+            int subfodler = FascicoliFolderExists(parentFolder, subfodlerName);
+            if (subfodler == 0) // se non esiste
+            {
+                var newfodler = foldersApi.FoldersNew(parentFolder, subfodlerName);
+                subfodler = newfodler.Id.Value;
+            }
+            return subfodler;
+        }
+
+        public void FascicoliMoveToFolder(int folderId, int docnumber)
+        {
+            Login();
+            var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
+            foldersApi.FoldersInsertDocnumbers(folderId, new List<int?>() { docnumber });
+        }
+
+        public int FascicoliMoveToSubfolder(int parentFolder, string subfolderName, int docnumber)
+        {
+            Login();
+            var foldersApi = new ArxivarNext.Api.FoldersApi(configuration);
+
+            var folders = foldersApi.FoldersGetByParentId(parentFolder);
+
+            var folderSearch = folders.Where(f => f.Name.ToLower().Equals(subfolderName.ToLower()));
+            var folder_exists = folderSearch.Any();
+
+            var folderId = FascicoliCreateFolder(parentFolder, subfolderName);
 
             // rimuovi dalla cartella precedente
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id: parent_folder);
+                foldersApi.FoldersRemoveDocumentsInFolder(parentFolder, new List<int?>() { docnumber });
             }
             catch { }
 
             // rimuove se già presente 
             try
             {
-                foldersApi.FoldersRemoveDocumentsInFolder(docnumbers: new List<int?>() { docnumber }, id: folder_id);
+                foldersApi.FoldersRemoveDocumentsInFolder(folderId, new List<int?>() { docnumber });
             }
             catch { }
 
             // aggiungi alla cartella di destinazione
-            foldersApi.FoldersInsertDocnumbers(docnumbers: new List<int?>() { docnumber }, id: folder_id);
+            FascicoliMoveToFolder(folderId, docnumber);
+            return folderId;
         }
 
         #endregion

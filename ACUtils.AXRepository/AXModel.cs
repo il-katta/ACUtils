@@ -13,15 +13,41 @@ namespace ACUtils.AXRepository
         #region properties
 
         [AxField(ax_field: "DOCNUMBER")]
-        public int? DOCNUMBER { get; set; }
+        public virtual int? DOCNUMBER { get; set; }
 
         public string FilePath { get; set; }
 
-        [AxField(ax_field: "DATA7_3")]
-        public DateTime? DataUltimaModifica { get; set; }
+        private string _stato;
+        [AxField(ax_field: "Stato")]
+        public virtual string STATO
+        {
+            get => _stato ?? GetArxivarAttribute()?.Stato;
+            set => _stato = value;
+        }
 
         [AxField(ax_field: "From")]
         public virtual string User { get; set; }
+
+        [AxField(ax_field: "From_ExternalId")]
+        public virtual string MittenteCodiceRubrica { get; set; }
+
+        [AxField(ax_field: "From")]
+        public virtual int? MittenteId { get; protected set; }
+
+        //[AxField(ax_field: "From_IdRubrica")]
+        public virtual int? MittenteIdRubrica { get; set; }
+
+        [AxField(ax_field: "To_ExternalId")]
+        public virtual IEnumerable<string> DestinatariCodiceRubrica { get; set; }
+
+        [AxField(ax_field: "To")]
+        public virtual IEnumerable<int?> DestinatariId { get; protected set; }
+
+        [AxField(ax_field: "To")]
+        public virtual IEnumerable<string> Destinatari { get; protected set; }
+
+        //[AxField(ax_field: "To_IdRubrica")]
+        public virtual int? DestinatariIdRubrica { get; set; }
 
         /// <summary>
         /// campo usato per popolare l'oggetto del documento
@@ -33,8 +59,12 @@ namespace ACUtils.AXRepository
         /// campo usato per settare la data documento su arxivar
         /// eseguire l'override per modificare il campo
         /// </summary>
-        private DateTime? _dataDoc;
-        public virtual DateTime? DataDoc { get => _dataDoc ?? DataUltimaModifica; set => _dataDoc = value; }
+
+        [AxField(ax_field: "DataDoc")]
+        public virtual DateTime? DataDoc { get; set; }
+
+        [AxField(ax_field: "WORKFLOW")]
+        public virtual bool? Workflow { get; set; }
 
         public List<string> Allegati { get; set; }
 
@@ -42,18 +72,65 @@ namespace ACUtils.AXRepository
 
         #region setters
 
-        public override void idrate(DataRow dr)
+        protected override void setValue(string key, object value, Type colType = null)
+        {
+            var property = this.GetType().GetProperty(key);
+            var sourceType = value?.GetType();
+            var targetType = property.PropertyType;
+            if (sourceType == typeof(ArxivarNext.Model.UserProfileDTO))
+            {
+                if (targetType == typeof(string))
+                {
+                    value = ((ArxivarNext.Model.UserProfileDTO)value).Description;
+                }
+                if (targetType == typeof(int) || targetType == typeof(int?))
+                {
+                    value = ((ArxivarNext.Model.UserProfileDTO)value).AddressBookId;
+                }
+            }
+
+            if (sourceType == typeof(ArxivarNextManagement.Model.UserProfileDTO))
+            {
+                if (targetType == typeof(string))
+                {
+                    value = ((ArxivarNextManagement.Model.UserProfileDTO)value).Description;
+                }
+                if (targetType == typeof(int) || targetType == typeof(int?))
+                {
+                    value = ((ArxivarNextManagement.Model.UserProfileDTO)value).AddressBookId;
+                }
+            }
+            if (sourceType == typeof(List<ArxivarNext.Model.UserProfileDTO>))
+            {
+                var source = (List<ArxivarNext.Model.UserProfileDTO>)value;
+                if (targetType == typeof(List<string>) || targetType == typeof(IEnumerable<string>))
+                {
+                    value = source.Select(e => e.Description).ToList();
+                }
+                if (
+                    targetType == typeof(List<int>) || targetType == typeof(List<int?>) ||
+                    targetType == typeof(IEnumerable<int>) || targetType == typeof(IEnumerable<int?>)
+                    )
+                {
+                    value = source.Select(e => e.AddressBookId).ToList();
+                }
+            }
+
+            base.setValue(key, value, colType);
+        }
+
+        public void idrate(DataRow dr)
         {
             // popola i campi che corrispondono ai nomi delle property
             base.idrate(dr);
 
-            // popola i campi che corrispondono ai nome deninito del Attribute della property
+            // popola i campi che corrispondono al nome definito nel Attribute della property
             PropertyInfo[] properties = this.GetType().GetProperties();
             foreach (PropertyInfo property in properties)
             {
                 if (!dr.Table.Columns.Contains(property.Name))
                 {
-                    var attr = this.GetArxivarAttribute(property.Name);
+                    var attr = this.GetDbAttribute(property.Name);
                     if (attr?.DbField == null) continue;
                     if (dr.Table.Columns.Contains(attr.DbField))
                     {
@@ -64,7 +141,7 @@ namespace ACUtils.AXRepository
                         catch (Exception e)
                         {
                             Console.WriteLine($"{attr.DbField} -> {property.Name} - {dr[attr.DbField]}: {e?.Message}"); // TODO: write log entry
-                            //throw;
+                            throw;
                         }
                     }
                 }
@@ -74,58 +151,72 @@ namespace ACUtils.AXRepository
         public static T Idrate(ArxivarNext.Model.EditProfileSchemaDTO model)
         {
             var obj = new T();
-            var properties = obj.GetType().GetProperties();
             foreach (var field in model.Fields)
             {
-                if (obj.HasAXField(field.Name))
+                if (field.GetType().GetProperty("Value") != null)
                 {
-                    foreach (var property in properties)
-                    {
-                        if (field.Name == obj.GetArxivarAttribute(property.Name)?.AXField)
-                        {
-                            dynamic dfiled = field;
-                            obj.setValue(property.Name, dfiled.Value);
-                        }
-
-                    }
+                    dynamic dfiled = field; // per poter accedere alla property Value
+                    obj.SetPropertyIfExists(field.Name, dfiled.Value);
                 }
             }
-            obj.DOCNUMBER = model.ProfileInfo.DocNumber;
+            
+            obj.SetPropertyIfExists("DOCNUMBER", model.ProfileInfo.DocNumber);
+            
+            var mittente = model.Fields.GetField<ArxivarNext.Model.ToFieldDTO>("TO");
+            obj.SetPropertyIfExists("To_ExternalId", mittente.Value?.Select(m => m.ExternalId));
+            
+            var destinatario = model.Fields.GetField<ArxivarNext.Model.FromFieldDTO>("FROM");
+            obj.SetPropertyIfExists("From_ExternalId", destinatario.Value?.ExternalId);
             return obj;
         }
 
-        public static T Idrate(ArxivarNext.Model.RowSearchResult model)
+        public static T Idrate(ArxivarNext.Model.RowSearchResult searchresult)
         {
             var obj = new T();
-            var properties = obj.GetType().GetProperties();
-            foreach (var col in model.Columns)
+            foreach (var col in searchresult.Columns)
             {
-                if (obj.HasAXField(col.Id))
-                {
-                    foreach (var property in properties)
-                    {
-                        if (col.Id == obj.GetArxivarAttribute(property.Name)?.AXField)
-                            obj.setValue(property.Name, col.Value);
-
-                    }
-                }
+                obj.SetPropertyIfExists(col.Id, col.Value);
             }
             return obj;
         }
 
+        public bool SetPropertyIfExists(string axField, object value)
+        {
+            bool found = false;
+            if (this.HasAXField(axField))
+            {
+                var properties = this.GetType().GetProperties();
+                foreach (var property in properties)
+                {
+                    if (axField == this.GetArxivarAttribute(property.Name)?.AXField)
+                    {
+                        this.setValue(property.Name, value);
+                        found = true;
+                    }
 
-        public static List<T> Idrate(List<ArxivarNext.Model.RowSearchResult> results) 
+                }
+            }
+#if DEBUG
+            else
+            {
+                //System.Diagnostics.Debugger.Break();
+            }
+#endif
+            return found;
+        }
+
+        public static List<T> Idrate(List<ArxivarNext.Model.RowSearchResult> results)
         {
             return (from result in results select Idrate(result)).ToList();
         }
 
-        #endregion
+#endregion
 
-        #region testers
-        public bool HasAS400Field(string field)
+#region testers
+        public new bool HasDbField(string field)
         {
             return this.GetType().GetProperties().Where(property =>
-                GetArxivarAttribute(property.Name)?.DbField == field
+                GetAxDbAttribute(property.Name)?.DbField == field
             ).Any();
         }
 
@@ -133,9 +224,9 @@ namespace ACUtils.AXRepository
         {
             return this.GetType().GetProperties().Where(property => GetArxivarAttribute(property.Name)?.AXField == field).Any();
         }
-        #endregion
+#endregion
 
-        #region getters
+#region getters
 
         public AxClassAttribute GetArxivarAttribute()
         {
@@ -143,14 +234,21 @@ namespace ACUtils.AXRepository
             return attrs.LastOrDefault() as AxClassAttribute;
         }
 
-        public AxDbFieldAttribute GetArxivarAttribute(string propertyName)
+        public AxFieldAttribute GetArxivarAttribute(string propertyName)
+        {
+            var propr = GetType().GetProperty(propertyName);
+            var attrs = propr.GetCustomAttributes(typeof(AxFieldAttribute), true);
+            return attrs.LastOrDefault() as AxFieldAttribute;
+        }
+
+        public AxDbFieldAttribute GetAxDbAttribute(string propertyName)
         {
             var propr = GetType().GetProperty(propertyName);
             var attrs = propr.GetCustomAttributes(typeof(AxDbFieldAttribute), true);
             return attrs.LastOrDefault() as AxDbFieldAttribute;
         }
 
-        public List<AxDbFieldAttribute> GetArxivarAttributes()
+        public List<AxFieldAttribute> GetArxivarAttributes()
         {
             return (
                 from attr in (
@@ -162,9 +260,9 @@ namespace ACUtils.AXRepository
             ).ToList();
         }
 
-        public Tm GetValueByAS400Field<Tm>(string field)
+        public Tm GetValueByDbField<Tm>(string field)
         {
-            return GetValueBy<Tm>(field, property => GetArxivarAttribute(property.Name)?.DbField);
+            return GetValueBy<Tm>(field, property => GetDbAttribute(property.Name)?.DbField);
         }
 
         public Tm GetValueByAXField<Tm>(string field)
@@ -180,9 +278,9 @@ namespace ACUtils.AXRepository
                 {
                     return GetValueByPropertyName<object>(fieldName);
                 }
-                if (HasAS400Field(fieldName))
+                if (HasDbField(fieldName))
                 {
-                    return GetValueByAS400Field<object>(fieldName);
+                    return GetValueByDbField<object>(fieldName);
                 }
                 if (HasAXField(fieldName))
                 {
@@ -245,6 +343,6 @@ namespace ACUtils.AXRepository
             return fields;
         }
 
-        #endregion
+#endregion
     }
 }

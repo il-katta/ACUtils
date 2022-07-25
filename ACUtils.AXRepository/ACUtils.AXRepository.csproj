@@ -5,13 +5,14 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.137</Version>
-    <PackageVersion>1.0.0.137</PackageVersion>
+    <Version>1.0.0.138</Version>
+    <PackageVersion>1.0.0.138</PackageVersion>
     <Description>Utility per gestione classi documentali Arxivar</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <OutputPath>..\dist\</OutputPath>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,6 @@
   <ItemGroup>
     <PackageReference Include="ARXivar.WebApi.Client.ArxivarWorkflow.NetFx" Version="2.6.3" />
     <PackageReference Include="JsonSubTypes" Version="1.8.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="RestSharp" Version="105.2.3" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />

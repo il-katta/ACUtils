@@ -164,6 +164,10 @@ namespace ACUtils.AXRepository
             {
                 (field as AdditionalFieldMultivalueDTO).Value = (List<string>)Convert.ChangeType(value, typeof(List<string>));
             }
+            else if (field?.ClassName == "FromFieldDTO")
+            {
+                (field as FromFieldDTO).Value = (UserProfileDTO)value;
+            }
             else
             {
                 throw new Exception($"'{name}' - type '{field?.ClassName}': not permitted ");
@@ -175,15 +179,16 @@ namespace ACUtils.AXRepository
             var field = ((ToFieldDTO)fields.FirstOrDefault(i =>
                 i.Name.Equals("To", StringComparison.CurrentCultureIgnoreCase)
             ));
-            field.Value = new List<UserProfileDTO>() { value };
+            if (field.Value == null)
+            {
+                field.Value = new List<UserProfileDTO>();
+            }
+            field.Value.Add(value);
         }
 
         public static void SetFromField(this List<FieldBaseDTO> fields, UserProfileDTO value)
         {
-            var field = ((FromFieldDTO)fields.FirstOrDefault(i =>
-                i.Name.Equals("From", StringComparison.CurrentCultureIgnoreCase)
-            ));
-            field.Value = value;
+            fields.SetField("From", value);
         }
 
 
@@ -226,7 +231,14 @@ namespace ACUtils.AXRepository
         }
         public static T GetValue<T>(this List<ColumnSearchResult> results, string name)
         {
-            return (T)results.Get(name).Value;
+            try
+            {
+                return (T)results.Get(name).Value;
+            }
+            catch
+            {
+                return (T)System.Convert.ChangeType(results.Get(name).Value, typeof(T));
+            }
         }
 
         public static List<FieldBaseForSelectDTO> Select(this List<FieldBaseForSelectDTO> fields, string name)
@@ -235,5 +247,10 @@ namespace ACUtils.AXRepository
             return fields;
         }
 
+        public static List<RubricaFieldDTO> Select(this List<RubricaFieldDTO> fields, string name)
+        {
+            fields.First(i => i.KeyField.Equals(name, StringComparison.CurrentCultureIgnoreCase)).Selected = true;
+            return fields;
+        }
     }
 }
