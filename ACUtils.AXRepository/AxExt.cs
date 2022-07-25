@@ -306,7 +306,7 @@ namespace ACUtils.AXRepository
 
         public static SelectDTO Select(this SelectDTO self, string name)
         {
-            self.Select(name);
+            self.Fields.Select(name);
             return self;
         }
 
