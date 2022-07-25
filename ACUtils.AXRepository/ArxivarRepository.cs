@@ -32,8 +32,10 @@ namespace ACUtils.AXRepository
         private long? _impersonateUserId;
 
         private string _token;
-        private string _refresh_token;
+        private string _refreshToken;
 
+        private string _tokenManagement;
+        private string _refreshTokenManagement;
         private WCFConnectorManager GetWcf()
         {
 
@@ -71,7 +73,7 @@ namespace ACUtils.AXRepository
         private ArxivarNextManagement.Client.Configuration configurationManagement =>
             new ArxivarNextManagement.Client.Configuration()
             {
-                ApiKey = new Dictionary<string, string>() { { "Authorization", _token } },
+                ApiKey = new Dictionary<string, string>() { { "Authorization", _tokenManagement } },
                 ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
                 BasePath = _managementUrl,
             };
@@ -264,24 +266,47 @@ namespace ACUtils.AXRepository
         #endregion
 
         #region auth
-        private void Login()
+
+        private AuthenticationTokenDTO _login(List<string> scopeList = null)
         {
-            if (string.IsNullOrEmpty(_token)) // TODO: test se è necessario il refresh del token
-            {
-                var authApi = new ArxivarNext.Api.AuthenticationApi(_apiUrl);
-                var auth = authApi.AuthenticationGetToken(
+            var authApi = new ArxivarNext.Api.AuthenticationApi(_apiUrl);
+            var auth = authApi.AuthenticationGetToken(
                     new AuthenticationTokenRequestDTO(
                         username: _username,
                         password: _password,
                         clientId: _appId,
                         clientSecret: _appSecret,
-                        impersonateUserId: _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?)
+                        impersonateUserId: _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?),
+                        scopeList: scopeList
                     )
                 );
+            return auth;
+        }
+        
+
+        private void Login()
+        {
+            if (string.IsNullOrEmpty(_token)) // TODO: test se è necessario il refresh del token
+            {
+                var auth = _login();
                 _token = auth.AccessToken;
-                _refresh_token = auth.RefreshToken;
+                _refreshToken = auth.RefreshToken;
             }
         }
+
+
+        private void LoginManagment()
+        {
+            if (string.IsNullOrEmpty(_tokenManagement))
+            {
+                var scopeList = new List<string> { "ArxManagement" };
+                var auth = _login(scopeList);
+                _tokenManagement = auth.AccessToken;
+                _refreshTokenManagement = auth.RefreshToken;
+            }
+        }
+
+
 
         #endregion
 
@@ -1166,7 +1191,7 @@ namespace ACUtils.AXRepository
                 throw new NotFoundException($"user '{aoo}\\{username}' not found");
             }
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
-            var userId = result.Columns.GetValue<int>("UTENTE");
+            var userId = result.GetValue<int>("UTENTE");
             return userApi.UsersGet(userId);
         }
 
@@ -1198,6 +1223,7 @@ namespace ACUtils.AXRepository
         {
             this._logger?.Information($"Creazione utente {username}");
             Login();
+            LoginManagment();
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
             var usersManagementApi = new ArxivarNextManagement.Api.UsersManagementApi(configurationManagement);
 
@@ -1222,6 +1248,9 @@ namespace ACUtils.AXRepository
                     Type3 = 0,
                 }
             );
+
+            
+
             if (groups != null)
             {
                 var existingGroups = userApi.UsersGetGroups();
@@ -1275,13 +1304,15 @@ namespace ACUtils.AXRepository
         public bool UserAddGroup(string aoo, string username, string groupName)
         {
             Login();
+            LoginManagment();
             var usersManagementApi = new ArxivarNextManagement.Api.UsersManagementApi(configurationManagement);
             var userApi = new ArxivarNext.Api.UsersApi(configuration);
 
             var user = UserGet(aoo, username);
             var existingGroups = userApi.UsersGetGroups();
-            var group = existingGroups.FirstOrDefault(g =>
-                g.Description.Equals(groupName, StringComparison.CurrentCultureIgnoreCase));
+            var group = existingGroups.FirstOrDefault(
+                g => g.Description.Equals(groupName, StringComparison.CurrentCultureIgnoreCase)
+            );
             if (group == null)
             {
                 throw new NotFoundException($"Arxivar group '{groupName}' not found");
@@ -1289,7 +1320,6 @@ namespace ACUtils.AXRepository
             var userGroups = usersManagementApi.UsersManagementGetUserGroups(user.User);
             if (!userGroups.Any(g => g.Description.Equals(groupName, StringComparison.CurrentCultureIgnoreCase)))
             {
-
                 userGroups.Add(new UserSimpleDTO(user: group.Id, description: group.Description));
                 usersManagementApi.UsersManagementSetUserGroups(userId: user.User, groups: userGroups);
                 return true;

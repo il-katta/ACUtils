@@ -12,12 +12,12 @@ namespace ACUtils.AXRepository
 
         public static EditProfileSchemaDTO SetState(this EditProfileSchemaDTO self, string stateName)
         {
-            self.SetState(stateName);
+            self.Fields.SetState(stateName);
             return self;
         }
         public static MaskProfileSchemaDTO SetState(this MaskProfileSchemaDTO self, string stateName)
         {
-            self.SetState(stateName);
+            self.Fields.SetState(stateName);
             return self;
         }
         public static void SetState(this List<FieldBaseDTO> fields, string stateName)
@@ -210,7 +210,7 @@ namespace ACUtils.AXRepository
 
         public static MaskProfileSchemaDTO SetToField(this MaskProfileSchemaDTO self, UserProfileDTO value)
         {
-            self.SetToField(value);
+            self.Fields.SetToField(value);
             return self;
         }
 
@@ -228,7 +228,7 @@ namespace ACUtils.AXRepository
 
         public static MaskProfileSchemaDTO SetFromField(this MaskProfileSchemaDTO self, UserProfileDTO value)
         {
-            self.SetFromField(value);
+            self.Fields.SetFromField(value);
             return self;
         }
         public static void SetFromField(this List<FieldBaseDTO> fields, UserProfileDTO value)
@@ -236,21 +236,32 @@ namespace ACUtils.AXRepository
             fields.SetField("From", value);
         }
 
-        public static UserSearchDTO SetString(this UserSearchDTO self, string name, object value, int operator_ = 3)
+        public static UserSearchDTO SetString(this UserSearchDTO self, string name, string value, int operator_ = 3)
         {
             self.StringFields.Set(name: name, value: value, operator_: operator_);
             return self;
         }
-        public static void Set(this List<FieldBaseForSearchStringDto> fields, string name, object value, int operator_ = 3)
+        public static void Set(this List<FieldBaseForSearchStringDto> fields, string name, string value, int operator_ = 3)
         {
             var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
             field.Operator = operator_;
-            field.Valore1 = Convert.ToString(value);
+            field.Valore1 = value;
         }
 
+        public static UserSearchDTO SetInt(this UserSearchDTO self, string name, int? value, int operator_ = 3)
+        {
+            self.IntFields.Set(name: name, value: value, operator_: operator_);
+            return self;
+        }
+        public static void Set(this List<FieldBaseForSearchIntDto> fields, string name, int? value, int operator_ = 3)
+        {
+            var field = fields.First(i => i.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+            field.Operator = operator_;
+            field.Valore1 = value;
+        }
         public static SearchDTO Set(this SearchDTO self, string name, object value, int operator_ = 3)
         {
-            self.Set(name: name, value: value, operator_: operator_);
+            self.Fields.Set(name: name, value: value, operator_: operator_);
             return self;
         }
         public static void Set(this List<FieldBaseForSearchDTO> fields, string name, object value, int operator_ = 3)
