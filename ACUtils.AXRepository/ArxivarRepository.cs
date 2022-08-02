@@ -36,31 +36,10 @@ namespace ACUtils.AXRepository
 
         private string _tokenManagement;
         private string _refreshTokenManagement;
-        private WCFConnectorManager GetWcf()
-        {
-
-            var logonRequest = new ArxLogonRequest
-            {
-                ClientId = _appId,
-                ClientSecret = _appSecret,
-                EnablePushEvents = true,
-                Username = _username,
-                Password = _password,
-                ImpersonateUserId = _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?)
-            };
-            var manager = new WCFConnectorManager(_wcfUrl, logonRequest)
-            {
-                AutoChunk = true,      //default a true
-                AutoReconnect = true,  //default a true
-                Lang = "IT"
-            };
-            manager.ChannelOpening += _manager_ChannelOpening;
-            manager.ChannelOpened += _manager_ChannelOpened;
-            return manager;
-
-        }
 
         ACUtils.ILogger _logger = null;
+
+        #region configuration
 
         private ArxivarNext.Client.Configuration configuration =>
             new ArxivarNext.Client.Configuration()
@@ -85,6 +64,10 @@ namespace ACUtils.AXRepository
                 ApiKeyPrefix = new Dictionary<string, string>() { { "Authorization", "Bearer" } },
                 BasePath = _workflowUrl,
             };
+
+        #endregion
+
+        #region constructor
 
         public ArxivarRepository(
             string apiUrl, string managementUrl, string workflowUrl, string username, string password, string appId, string appSecret,
@@ -120,6 +103,8 @@ namespace ACUtils.AXRepository
             this._logger = logger;
             _token = authToken;
         }
+
+        #endregion
 
         #region file upload
         public List<string> UploadFile(Stream stream)
@@ -205,20 +190,25 @@ namespace ACUtils.AXRepository
 
             var addressBookApi = new ArxivarNext.Api.AddressBookApi(configuration);
             var filter = addressBookApi.AddressBookGetSearchField();
-            var select = addressBookApi.AddressBookGetSelectField();
-            select.Select("DM_RUBRICA_CODICE");
-            select.Select("DM_RUBRICA_AOO");
-            select.Select("DM_RUBRICA_CODICE");
-            select.Select("ID");
+            var select = addressBookApi.AddressBookGetSelectField()
+                .Select("DM_RUBRICA_CODICE")
+                .Select("DM_RUBRICA_AOO")
+                .Select("DM_RUBRICA_CODICE")
+                .Select("DM_RUBRICA_SYSTEM_ID")
+                .Select("ID");
 
-            var result = addressBookApi.AddressBookPostSearch(new AddressBookSearchCriteriaDTO(
+            var results = addressBookApi.AddressBookPostSearch(new AddressBookSearchCriteriaDTO(
                 filter: codice,
                 addressBookCategoryId: addressBookCategoryId,
                 filterFields: filter,
                 selectFields: select
             ));
 
-            var addressBookId = result.Data.First().Columns.GetValue<int>("ID");
+            var result = results.Data.First();
+
+            var contactId = result.GetValue<int>("ID");
+            var addressBookId = result.GetValue<int>("DM_RUBRICA_SYSTEM_ID");
+
             var addressBook = addressBookApi.AddressBookGetById(addressBookId: addressBookId);
             return new ArxivarNext.Model.UserProfileDTO(
                 id: addressBook.Id,
@@ -226,7 +216,7 @@ namespace ACUtils.AXRepository
                 description: addressBook.BusinessName,
                 docNumber: "-1",
                 type: (int)type,
-                contactId: addressBook.Id,
+                contactId: contactId,
                 fax: addressBook.Fax,
                 address: addressBook.Address,
                 postalCode: addressBook.PostalCode,
@@ -282,7 +272,7 @@ namespace ACUtils.AXRepository
                 );
             return auth;
         }
-        
+
 
         private void Login()
         {
@@ -309,16 +299,7 @@ namespace ACUtils.AXRepository
 
 
         #endregion
-
-
-        public void DeleteWorkflow(int? processId)
-        {
-            var workflowApi = new ArxivarNext.Api.WorkflowApi(configuration);
-            workflowApi.WorkflowStopWorkflow(processId.Value);
-            workflowApi.WorkflowDeleteWorkflow(processId, true);
-            workflowApi.WorkflowFreeUserConstraint(processId.Value);
-        }
-
+       
         #region profile - get
         public T GetProfile<T>(int docnumber) where T : AXModel<T>, new()
         {
@@ -662,7 +643,6 @@ namespace ACUtils.AXRepository
             profileDto.PostProfilationActions = new List<ACUtils.AXRepository.ArxivarNext.Model.PostProfilationActionDTO>();
             profileDto.Document = new FileDTO() { BufferIds = bufferId };
 
-
             if (model.Allegati != null)
             {
                 foreach (var allegato in model.Allegati)
@@ -675,7 +655,6 @@ namespace ACUtils.AXRepository
 
             var status = statesApi.StatesGet(classeDoc.Id);
             profileDto.SetState(model.GetArxivarAttribute().Stato ?? status.First().Id);
-
 
             var additional = profileApi.ProfilesGetAdditionalByClasse(
                 classeDoc.DocumentType,
@@ -693,7 +672,9 @@ namespace ACUtils.AXRepository
             }
 
             if (!string.IsNullOrEmpty(model.User))
+            {
                 profileDto.SetFromField(GetUserAddressBookEntry(model.User, 1));
+            }
 
             if (!string.IsNullOrEmpty(model.MittenteCodiceRubrica))
             {
@@ -716,14 +697,33 @@ namespace ACUtils.AXRepository
                 }
             }
 
-
+            model.STATO = model.STATO ?? statesApi.StatesGet(classeDoc.Id).First().Id;
             foreach (var field in model.GetArxivarFields())
             {
-                profileDto.SetField(field.Key, field.Value);
+                if (new[] { "FROM", "TO", "CC" }.Contains(field.Key.ToUpper()))
+                {
+                    // TODO: ricercare il profilo in base al dato passato
+                }
+                else if (field.Key.Equals(Attributes.AxFromExternalIdFieldAttribute.AX_KEY))
+                {
+
+                }
+                else if (field.Key.Equals(Attributes.AxToExternalIdFieldAttribute.AX_KEY))
+                {
+
+                }
+                else if (field.Key.Equals(Attributes.AxCcExternalIdFieldAttribute.AX_KEY))
+                {
+
+                }
+                else
+                {
+                    profileDto.SetField(field.Key, field.Value);
+                }
             }
 
-            var stato = model.STATO ?? statesApi.StatesGet(classeDoc.Id).First().Id;
-            profileDto.SetState(stato);
+            
+            //profileDto.SetState(model.STATO);
 
             var newProfile = new ProfileDTO()
             {
@@ -793,18 +793,48 @@ namespace ACUtils.AXRepository
 
         #region download documento
 
-        public string DownloadDocument(long docnumber, string outputFolder, bool forView = false)
+        public (Stream stream, string filename) GetDocumentFileStream(long docnumber, bool forView = false)
         {
             Login();
             var documentsApi = new ArxivarNext.Api.DocumentsApi(configuration);
+
             var response = documentsApi.DocumentsGetForProfileWithHttpInfo(System.Convert.ToInt32(docnumber), forView);
-            var fileNameInfo = response.Headers["Content-Disposition"];
-            //var filename = (new Regex("filename=\"(.*)\"", RegexOptions.IgnoreCase)).Match(fileNameInfo).Groups[0].Value;
-            var filename = new System.Net.Mime.ContentDisposition(fileNameInfo).FileName ?? "file.dat";
-            var fullPath = Path.Combine(outputFolder, filename);
-            _write_stream_to_file(response.Data, fullPath);
-            return fullPath;
+
+            if (response.Data is FileStream)
+            {
+                using (response.Data)
+                {
+                    var fileStream = response.Data as FileStream;
+                    var fileName = System.IO.Path.GetFileName(fileStream.Name);
+                    MemoryStream memoryStream = new MemoryStream();
+                    fileStream.CopyTo(fileStream);
+                    fileStream.Close();
+
+                    if (System.IO.File.Exists(fileStream.Name))
+                        System.IO.File.Delete(fileStream.Name);
+                    return (memoryStream, fileName);
+                }
+            }
+            else
+            {
+                var fileNameInfo = response.Headers["Content-Disposition"];
+                var filename = (new Regex("filename=\"(.*)\"", RegexOptions.IgnoreCase)).Match(fileNameInfo).Groups[0].Value;
+                return (response.Data, filename);
+            }
+
         }
+
+        public string DownloadDocument(long docnumber, string outputFolder, bool forView = false)
+        {
+            (Stream stream, string filename) = GetDocumentFileStream(docnumber, forView);
+            using (stream)
+            {
+                var fullPath = Path.Combine(outputFolder, filename);
+                _write_stream_to_file(stream, fullPath).Close();
+                return fullPath;
+            }
+        }
+
 
         #endregion
 
@@ -1038,6 +1068,29 @@ namespace ACUtils.AXRepository
         #endregion
 
         #region wfc functions
+        private WCFConnectorManager GetWcf()
+        {
+
+            var logonRequest = new ArxLogonRequest
+            {
+                ClientId = _appId,
+                ClientSecret = _appSecret,
+                EnablePushEvents = true,
+                Username = _username,
+                Password = _password,
+                ImpersonateUserId = _impersonateUserId.HasValue ? System.Convert.ToInt32(_impersonateUserId) : default(int?)
+            };
+            var manager = new WCFConnectorManager(_wcfUrl, logonRequest)
+            {
+                AutoChunk = true,      //default a true
+                AutoReconnect = true,  //default a true
+                Lang = "IT"
+            };
+            manager.ChannelOpening += _manager_ChannelOpening;
+            manager.ChannelOpened += _manager_ChannelOpened;
+            return manager;
+
+        }
         private void _manager_ChannelOpened(string message)
         {
             this._logger?.Debug($"WCF ChannelOpened: {message}");
@@ -1177,7 +1230,7 @@ namespace ACUtils.AXRepository
         {
             Login();
             var userSearchApi = new ArxivarNext.Api.UserSearchApi(configuration);
-            
+
             var select = userSearchApi.UserSearchGetSelect()
                 .Select("UTENTE");
 
@@ -1249,7 +1302,7 @@ namespace ACUtils.AXRepository
                 }
             );
 
-            
+
 
             if (groups != null)
             {
@@ -1383,6 +1436,18 @@ namespace ACUtils.AXRepository
                 CanApplyStaps = user.CanApplyStaps,
             };
             userApi.UsersUpdate(user.User, update);
+        }
+
+        #endregion
+
+        #region workflow
+
+        public void DeleteWorkflow(int? processId)
+        {
+            var workflowApi = new ArxivarNext.Api.WorkflowApi(configuration);
+            workflowApi.WorkflowStopWorkflow(processId.Value);
+            workflowApi.WorkflowDeleteWorkflow(processId, true);
+            workflowApi.WorkflowFreeUserConstraint(processId.Value);
         }
 
         #endregion

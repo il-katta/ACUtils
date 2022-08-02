@@ -1,7 +1,7 @@
 ﻿namespace ACUtils.AXRepository.Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class AxFieldAttribute : System.Attribute, IAxFieldAttribute
+    public class AxFieldAttribute : DbFieldAttribute, IAxFieldAttribute
     {
         readonly string ax_field;
         readonly string description;
@@ -11,7 +11,7 @@
         public int? Key => _key;
         public bool IsPrimaryKey => Key.GetValueOrDefault() > 0;
 
-        public AxFieldAttribute(string ax_field = null, string description = null, int key = 0)
+        public AxFieldAttribute(string ax_field = null, string description = null, int key = 0): base()
         {
             this.ax_field = ax_field;
             this.description = description;

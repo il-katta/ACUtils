@@ -28,7 +28,7 @@ namespace ACUtils.AXRepository
         [AxField(ax_field: "From")]
         public virtual string User { get; set; }
 
-        [AxField(ax_field: "From_ExternalId")]
+        [AxFromExternalIdField]
         public virtual string MittenteCodiceRubrica { get; set; }
 
         [AxField(ax_field: "From")]
@@ -37,7 +37,7 @@ namespace ACUtils.AXRepository
         //[AxField(ax_field: "From_IdRubrica")]
         public virtual int? MittenteIdRubrica { get; set; }
 
-        [AxField(ax_field: "To_ExternalId")]
+        [AxToExternalIdField]
         public virtual IEnumerable<string> DestinatariCodiceRubrica { get; set; }
 
         [AxField(ax_field: "To")]
@@ -159,14 +159,14 @@ namespace ACUtils.AXRepository
                     obj.SetPropertyIfExists(field.Name, dfiled.Value);
                 }
             }
-            
+
             obj.SetPropertyIfExists("DOCNUMBER", model.ProfileInfo.DocNumber);
-            
+
             var mittente = model.Fields.GetField<ArxivarNext.Model.ToFieldDTO>("TO");
-            obj.SetPropertyIfExists("To_ExternalId", mittente.Value?.Select(m => m.ExternalId));
-            
+            obj.SetPropertyIfExists(AxToExternalIdFieldAttribute.AX_KEY, mittente.Value?.Select(m => m.ExternalId));
+
             var destinatario = model.Fields.GetField<ArxivarNext.Model.FromFieldDTO>("FROM");
-            obj.SetPropertyIfExists("From_ExternalId", destinatario.Value?.ExternalId);
+            obj.SetPropertyIfExists(AxFromExternalIdFieldAttribute.AX_KEY, destinatario.Value?.ExternalId);
             return obj;
         }
 
@@ -210,9 +210,9 @@ namespace ACUtils.AXRepository
             return (from result in results select Idrate(result)).ToList();
         }
 
-#endregion
+        #endregion
 
-#region testers
+        #region testers
         public new bool HasDbField(string field)
         {
             return this.GetType().GetProperties().Where(property =>
@@ -224,9 +224,9 @@ namespace ACUtils.AXRepository
         {
             return this.GetType().GetProperties().Where(property => GetArxivarAttribute(property.Name)?.AXField == field).Any();
         }
-#endregion
+        #endregion
 
-#region getters
+        #region getters
 
         public AxClassAttribute GetArxivarAttribute()
         {
@@ -298,7 +298,8 @@ namespace ACUtils.AXRepository
                 var ax = GetArxivarAttribute(property.Name);
                 if (ax != null && !string.IsNullOrEmpty(ax.AXField))
                 {
-                    fields.Add(ax.AXField, this[ax.AXField]);
+                    if (!fields.Keys.Contains(ax.AXField))
+                        fields.Add(ax.AXField, this[ax.AXField]);
                 }
             }
             return fields;
@@ -343,6 +344,6 @@ namespace ACUtils.AXRepository
             return fields;
         }
 
-#endregion
+        #endregion
     }
 }

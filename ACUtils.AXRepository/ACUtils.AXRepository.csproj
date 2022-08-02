@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.141</Version>
-    <PackageVersion>1.0.0.141</PackageVersion>
+    <Version>1.0.0.142</Version>
+    <PackageVersion>1.0.0.142</PackageVersion>
     <Description>Utility per gestione classi documentali Arxivar</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>

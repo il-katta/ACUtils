@@ -151,6 +151,10 @@ namespace ACUtils.AXRepository
 
         public static void SetField(this List<FieldBaseDTO> fields, string name, object value)
         {
+            if (name == "WORKFLOW")
+            {
+                return;
+            }
             if (name == "DOCNUMBER")
             {
                 return;
@@ -201,6 +205,10 @@ namespace ACUtils.AXRepository
             else if (field?.ClassName == "FromFieldDTO")
             {
                 (field as FromFieldDTO).Value = (UserProfileDTO)value;
+            }
+            else if (field?.ClassName == "StateFieldDTO")
+            {
+                (field as StateFieldDTO).Value = (string)value;
             }
             else
             {
