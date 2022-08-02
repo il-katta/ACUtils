@@ -242,6 +242,20 @@ namespace ACUtils
             File.WriteAllText(filePath, text);
         }
 
+        public static Stream Write(Stream stream, string filepath)
+        {
+            var fileStream = File.Create(filepath);
+            stream.Seek(0, SeekOrigin.Begin);
+            stream.CopyTo(fileStream);
+            fileStream.Close();
+            return stream;
+        }
+
+        public static void Write(byte[] stream, string filepath)
+        {
+            File.WriteAllBytes(filepath, stream);
+        }
+
         #endregion
 
         #region convert
