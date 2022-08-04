@@ -766,7 +766,7 @@ namespace ACUtils.AXRepository
                     var attachment = attachmentsApi.AttachmentsGetById(info.Id);
                     var doc = documentsApi.DocumentsGetForExternalAttachment(info.Id, false);
                     var path = Path.Combine(outputFolder, attachment.Originalname);
-                    _write_stream_to_file(doc, path);
+                    FileUtils.Write(doc, path).Close();
 
                     // fix ACL ( permessi ) sul file
                     try
@@ -830,7 +830,7 @@ namespace ACUtils.AXRepository
             using (stream)
             {
                 var fullPath = Path.Combine(outputFolder, filename);
-                _write_stream_to_file(stream, fullPath).Close();
+                FileUtils.Write(stream, fullPath).Close();
                 return fullPath;
             }
         }
@@ -1451,19 +1451,6 @@ namespace ACUtils.AXRepository
         }
 
         #endregion
-
-        public Stream _write_stream_to_file(Stream stream, string filepath)
-        {
-            var fileStream = File.Create(filepath);
-            stream.Seek(0, SeekOrigin.Begin);
-            stream.CopyTo(fileStream);
-            fileStream.Close();
-            return stream;
-        }
-        public void _write_stream_to_file(byte[] stream, string filepath)
-        {
-            File.WriteAllBytes(filepath, stream);
-        }
 
     }
 }

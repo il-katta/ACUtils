@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -131,11 +132,15 @@ namespace ACUtils
             }
 
             // move
-            File.Move(sourceFileName: sFilePathSrc, destFileName: sFilePathDest);
-
             if (fixAcl)
             {
+                File.Copy(sourceFileName: sFilePathSrc, destFileName: sFilePathDest);
+                File.Delete(sFilePathSrc);
                 CopyAcl(sFilePathDest);
+            }
+            else
+            {
+                File.Move(sourceFileName: sFilePathSrc, destFileName: sFilePathDest);
             }
 
             return sFilePathDest;
@@ -193,19 +198,47 @@ namespace ACUtils
         {
             try
             {
-                System.Security.AccessControl.FileSecurity directoryAcl = new FileInfo(sPathSrc).GetAccessControl();
-                new FileInfo(sPathDest).SetAccessControl(directoryAcl);
+                CopyAcl(sPathSrc, sPathDest, AccessControlSections.Audit);
                 return true;
             }
-            catch (Exception e)
+            catch
             {
-                if (throwException)
+                try
                 {
-                    throw e;
+                    CopyAcl(sPathSrc, sPathDest, null);
+                    return true;
                 }
-                return false;
+                catch
+                {
+                    if (throwException)
+                    {
+                        throw;
+                    }
+                    return false;
+                }
             }
         }
+
+
+  
+
+        private static bool CopyAcl(string sPathSrc, string sPathDest, AccessControlSections? accessControlSections = null)
+        {
+            if (IsDirectory(sPathDest) && IsDirectory(sPathSrc))
+            {
+                FileSystemSecurity acl = accessControlSections == null ? (new DirectoryInfo(sPathSrc)).GetAccessControl() : (new DirectoryInfo(sPathSrc)).GetAccessControl(accessControlSections.Value);
+                acl.SetAuditRuleProtection(false, false);
+                new DirectoryInfo(sPathDest).SetAccessControl(acl as DirectorySecurity);
+            }
+            else
+            {
+                FileSystemSecurity acl = accessControlSections == null ? (new FileInfo(sPathSrc)).GetAccessControl() : (new FileInfo(sPathSrc)).GetAccessControl(accessControlSections.Value);
+                acl.SetAuditRuleProtection(false, false);
+                new FileInfo(sPathDest).SetAccessControl(acl as FileSecurity);
+            }
+            return true;
+        }
+
         /// <summary>
         /// applica le ACL della cartella in cui è contenuto il file al file
         /// </summary>
