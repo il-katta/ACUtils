@@ -327,18 +327,7 @@ namespace ACUtils
             using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
             {
                 object value = selectCommand.ExecuteScalar();
-                // conversione variabile da object a type specificato
-                //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                var type = typeof(T);
-                if (Nullable.GetUnderlyingType(typeof(T)) != null)
-                {
-                    type = Nullable.GetUnderlyingType(type);
-                    if (value == null || value == DBNull.Value)
-                    {
-                        return default(T);
-                    }
-                }
-                return (T)Convert.ChangeType(value, type);
+                return _changeType<T>(value);
             }
         }
 
@@ -347,13 +336,13 @@ namespace ACUtils
             using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
             {
                 object value = selectCommand.ExecuteScalar();
-                if (value is DBNull)
+                if (value == null || value == DBNull.Value || value is DBNull)
                 {
                     return null;
                 }
                 // conversione variabile da object a type specificato
                 //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                return (T?)Convert.ChangeType(value, typeof(T?));
+                return _changeType<T?>(value);
             }
         }
 
@@ -385,7 +374,7 @@ namespace ACUtils
             using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
             {
                 object value = selectCommand.ExecuteScalar();
-                return (T)Convert.ChangeType(value, typeof(T));
+                return _changeType<T>(value);
             }
         }
 
@@ -398,7 +387,7 @@ namespace ACUtils
                 {
                     connection.Open();
                     var value = QuerySingleValue<T>(connection, queryString);
-                    return (T)Convert.ChangeType(value, typeof(T));
+                    return _changeType<T>(value);
                 }
                 catch (Exception ex)
                 {
@@ -418,7 +407,7 @@ namespace ACUtils
             using (SqlCommand selectCommand = generateCommand(connection, queryString))
             {
                 object value = selectCommand.ExecuteScalar();
-                return (T)Convert.ChangeType(value, typeof(T));
+                return _changeType<T>(value);
             }
         }
 
@@ -905,5 +894,22 @@ namespace ACUtils
             catch { }
         }
         #endregion
+
+
+        private static T _changeType<T>(object value)
+        {
+            // conversione variabile da object a type specificato
+            //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
+            var type = typeof(T);
+            if (Nullable.GetUnderlyingType(typeof(T)) != null)
+            {
+                type = Nullable.GetUnderlyingType(type);
+                if (value == null || value == DBNull.Value)
+                {
+                    return default(T);
+                }
+            }
+            return (T)Convert.ChangeType(value, type);
+        }
     }
 }
