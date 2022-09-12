@@ -54,7 +54,7 @@ namespace ACUtils
 
         #region QueryDataTable
         /// <summary>
-        /// Eseque la query e restituisce il DataTable del risultato
+        /// Esegue la query e restituisce il DataTable del risultato
         /// </summary>
         /// <example>
         /// db.QueryDataTable("SELECT * FROM A WHERE B = @B", "@B".WithValue("1"));
@@ -537,10 +537,10 @@ namespace ACUtils
 
         #endregion
 
-        public static T GetColVal<T>(DataRow dataRow, string columName)
+        public static T GetColVal<T>(DataRow dataRow, string columnName)
         {
-            // dataRow.Field<T>(columName)
-            object val = dataRow[columName];
+            // dataRow.Field<T>(columnName)
+            object val = dataRow[columnName];
             switch (val.GetType().Name)
             {
                 case "DBNull":
