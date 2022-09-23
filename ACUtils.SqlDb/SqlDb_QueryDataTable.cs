@@ -6,50 +6,49 @@ namespace ACUtils
 {
     public static class SqlDb_QueryDataTable
     {
-        /// <summary>
-        /// Esegue la query e restituisce il DataTable del risultato
-        /// </summary>
-        /// <example>
-        /// db.QueryDataTable("SELECT * FROM A WHERE B = @B", "@B".WithValue("1"));
-        /// </example>
-        /// <param name="queryString">stringa contenente la stringa di interrogazione SQL</param>
-        /// <param name="queryParams">nomi dei parametri associati a i loro valori. utilizzare <see cref="KeyValuePairExt"/> come helper </param>
-        /// <returns></returns>
-        public static DataTable QueryDataTable(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
+        #region static without params
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString)
         {
-            DataSet ds = self.QueryDataSet(queryString, queryParams);
-            return ds.Tables[0];
+            return QueryDataTable(connection, queryString, new KeyValuePair<string, object>[0]);
         }
-
-        public static DataTable QueryDataTable(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        #endregion
+        #region static with simple params 
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            DataSet ds = self.QueryDataSet(connection, queryString, queryParams);
-            return ds.Tables[0];
+            DataSet ds = SqlDb_QueryDataSet.QueryDataSet(connection, queryString, queryParams);
+            return _return(ds);
         }
-
-        public static DataTable QueryDataTable(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        #endregion
+        #region static with typed params
+        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            DataSet ds = self.QueryDataSet(queryString, queryParams);
-            return ds.Tables[0];
+            DataSet ds = SqlDb_QueryDataSet.QueryDataSet(connection, queryString, queryParams);
+            return _return(ds);
         }
+        #endregion
 
-        public static DataTable QueryDataTable(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            DataSet ds = self.QueryDataSet(connection, queryString, queryParams);
-            return ds.Tables[0];
-        }
-
+        #region without params
         public static DataTable QueryDataTable(this SqlDb self, string queryString)
         {
-            DataSet ds = self.QueryDataSet(queryString);
-            return ds.Tables[0];
+            return self.QueryDataTable(queryString, new KeyValuePair<string, object>[0]);
         }
-
-        public static DataTable QueryDataTable(this SqlDb self, SqlConnection connection, string queryString)
+        #endregion
+        #region with simple params
+        public static DataTable QueryDataTable(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            DataSet ds = self.QueryDataSet(connection, queryString);
+            return _return(self.QueryDataSet(queryString, queryParams));
+        }
+        #endregion
+        #region whit typed params
+        public static DataTable QueryDataTable(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        {
+            return _return(self.QueryDataSet(queryString, queryParams));
+        }
+        #endregion
+
+        private static DataTable _return(DataSet ds)
+        {
             return ds.Tables[0];
         }
-
     }
 }

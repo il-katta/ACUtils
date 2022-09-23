@@ -8,16 +8,22 @@ namespace ACUtils
     {
         public static void BulkInsert<T>(this SqlDb self, string tablename, IEnumerable<T> records)
         {
-            using (var bc = new SqlBulkCopy(self.ConnectionString))
+            using (var connection = self._getConnection())
             {
-                bc.WriteToServer(self.BulkInsertPrepare(bc, tablename, records));
+                using (var bc = new SqlBulkCopy(connection.Connection))
+                {
+                    bc.WriteToServer(self.BulkInsertPrepare(bc, tablename, records));
+                }
             }
         }
         public static async System.Threading.Tasks.Task BulkInsertAsync<T>(this SqlDb self, string tablename, IEnumerable<T> records)
         {
-            using (var bc = new SqlBulkCopy(self.ConnectionString))
+            using (var connection = await self._getConnectionAsync())
             {
-                await bc.WriteToServerAsync(self.BulkInsertPrepare(bc, tablename, records));
+                using (var bc = new SqlBulkCopy(connection.Connection))
+                {
+                    await bc.WriteToServerAsync(self.BulkInsertPrepare(bc, tablename, records));
+                }
             }
         }
 

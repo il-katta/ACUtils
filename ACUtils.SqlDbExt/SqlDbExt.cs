@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -24,7 +23,7 @@ namespace ACUtils
 
         public static void ToCSV(SqlConnection connection, string queryString, string csvFilePath, char Escape = '"', char Quote = '"', string Delimiter = ";", bool BoolToIntConvert = false, params KeyValuePair<string, object>[] queryParams)
         {
-            DataTable dt = SqlDb.QueryDataTable(connection, queryString, queryParams);
+            DataTable dt = SqlDb_QueryDataTable.QueryDataTable(connection, queryString, queryParams);
             SqlDbExt.ToCsv(
                 dataTable: dt,
                 csvFilePath: csvFilePath,

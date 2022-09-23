@@ -7,114 +7,84 @@ namespace ACUtils
 {
     public static class SqlDb_QueryDataSet
     {
-        public static DataSet QueryDataSet(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        #region static without params
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    self.WriteLog(queryString, queryParams);
-                    var ds = self.QueryDataSet(connection, queryString, queryParams);
-                    return ds;
-                }
-                catch (Exception ex)
-                {
-                    self.WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
+            return QueryDataSet(connection, queryString, new KeyValuePair<string, object>[0]);
         }
-
-        public static DataSet QueryDataSet(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        #endregion
+        #region static with simple params 
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString, queryParams))
             {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
-                {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = SqlDb.MissingSchemaAction;
-                    adapter.Fill(ds);
-                    return ds;
-                }
+                return _return(selectCommand);
             }
         }
-
-        public static DataSet QueryDataSet(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    self.WriteLog(queryString, queryParams);
-                    var ds = self.QueryDataSet(connection, queryString, queryParams);
-                    return ds;
-                }
-                catch (Exception ex)
-                {
-                    self.WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static DataSet QueryDataSet(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        #endregion
+        #region static with typed params
+        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString, queryParams))
             {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
-                {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = SqlDb.MissingSchemaAction;
-                    adapter.Fill(ds);
-                    return ds;
-                }
+                return _return(selectCommand);
             }
         }
+        #endregion
 
+        #region without params
         public static DataSet QueryDataSet(this SqlDb self, string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
+            return self.QueryDataSet(queryString, new KeyValuePair<string, object>[0]);
+        }
+        #endregion
+        #region with simple params
+        public static DataSet QueryDataSet(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            using (var connection = self._getConnection())
             {
+                self.WriteLog(queryString, queryParams);
                 try
                 {
-                    connection.Open();
-                    self.WriteLog(queryString);
-                    var ds = self.QueryDataSet(connection, queryString);
+                    var ds = QueryDataSet(connection.Connection, queryString, queryParams);
                     return ds;
                 }
                 catch (Exception ex)
                 {
-                    self.WriteLog(ex, queryString);
+                    self.WriteLog(ex, queryString, queryParams);
                     throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
                 }
             }
         }
-
-        public static DataSet QueryDataSet(this SqlDb self, SqlConnection connection, string queryString)
+        #endregion
+        #region whit typed params
+        public static DataSet QueryDataSet(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString))
+            using (var connection = self._getConnection())
             {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
+                self.WriteLog(queryString, queryParams);
+                try
                 {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = SqlDb.MissingSchemaAction;
-                    adapter.Fill(ds);
+                    var ds = QueryDataSet(connection.Connection, queryString, queryParams);
                     return ds;
                 }
+                catch (Exception ex)
+                {
+                    self.WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
+            }
+        }
+        #endregion
+
+        private static DataSet _return(SqlCommand selectCommand)
+        {
+            using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
+            {
+                DataSet ds = new DataSet();
+                adapter.MissingSchemaAction = SqlDb.MissingSchemaAction;
+                adapter.Fill(ds);
+                return ds;
             }
         }
     }

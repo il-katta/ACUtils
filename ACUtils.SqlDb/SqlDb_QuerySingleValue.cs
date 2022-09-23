@@ -8,115 +8,77 @@ namespace ACUtils
 {
     public static class SqlDb_QuerySingleValue
     {
-        public static T QuerySingleValue<T>(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
+        #region static without params
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    self.WriteLog(queryString, queryParams);
-                    var value = self.QuerySingleValue<T>(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    self.WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
+            return QuerySingleValue<T>(connection, queryString, new KeyValuePair<string, object>[0]);
         }
-        public static T QuerySingleValue<T>(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
+        #endregion
+        #region static with simple params 
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
         {
             using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString, queryParams))
             {
-                object value = selectCommand.ExecuteScalar();
-                return SqlDb._changeType<T>(value);
+                return _return<T>(selectCommand.ExecuteScalar());
             }
         }
-
-        public static Nullable<T> QueryNullableSingleValue<T>(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
+        #endregion
+        #region static with typed params
+        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString, queryParams))
             {
-                object value = selectCommand.ExecuteScalar();
-                if (value == null || value == DBNull.Value || value is DBNull)
-                {
-                    return null;
-                }
-                // conversione variabile da object a type specificato
-                //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                return SqlDb._changeType<T?>(value);
+                return _return<T>(selectCommand.ExecuteScalar());
             }
         }
+        #endregion
 
-        public static T QuerySingleValue<T>(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    self.WriteLog(queryString, queryParams);
-                    var value = self.QuerySingleValue<T>(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    self.WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static T QuerySingleValue<T>(this SqlDb self, SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString, queryParams))
-            {
-                object value = selectCommand.ExecuteScalar();
-                return SqlDb._changeType<T>(value);
-            }
-        }
-
-
+        #region without params
         public static T QuerySingleValue<T>(this SqlDb self, string queryString)
         {
-            using (SqlConnection connection = new SqlConnection(self.ConnectionString))
+            return self.QuerySingleValue<T>(queryString, new KeyValuePair<string, object>[0]);
+        }
+        #endregion
+        #region with simple params
+        public static T QuerySingleValue<T>(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams)
+        {
+            using (var connection = self._getConnection())
             {
+                self.WriteLog(queryString, queryParams);
                 try
                 {
-                    connection.Open();
-                    var value = self.QuerySingleValue<T>(connection, queryString);
-                    return SqlDb._changeType<T>(value);
+                    return QuerySingleValue<T>(connection.Connection, queryString, queryParams);
                 }
                 catch (Exception ex)
                 {
-                    self.WriteLog(ex, queryString);
+                    self.WriteLog(ex, queryString, queryParams);
                     throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
                 }
             }
         }
-
-
-        public static T QuerySingleValue<T>(this SqlDb self, SqlConnection connection, string queryString)
+        #endregion
+        #region whit typed params
+        public static T QuerySingleValue<T>(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            using (SqlCommand selectCommand = SqlDb.generateCommand(connection, queryString))
+            using (var connection = self._getConnection())
             {
-                object value = selectCommand.ExecuteScalar();
-                return SqlDb._changeType<T>(value);
+                self.WriteLog(queryString, queryParams);
+                try
+                {
+                    return QuerySingleValue<T>(connection.Connection, queryString, queryParams);
+                }
+                catch (Exception ex)
+                {
+                    self.WriteLog(ex, queryString, queryParams);
+                    throw;
+                }
             }
+        }
+        #endregion
+
+        private static T _return<T>(object value)
+        {
+            return SqlDb._changeType<T>(value);
         }
     }
 }

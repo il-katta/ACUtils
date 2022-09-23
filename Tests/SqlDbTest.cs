@@ -38,7 +38,7 @@ namespace Tests
         public void TestSelect(string value)
         {
             SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.AddWithKey;
-            SqlDb.QueryDataRow(
+            SqlDb_QueryDataRow.QueryDataRow(
                 new System.Data.SqlClient.SqlConnection(CONNECTION_STRING),
                  "SELECT @a AS A",
                 "@a".WithValue(value, 3)
@@ -73,7 +73,7 @@ namespace Tests
         public void TestSelectInt(int value)
         {
             SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.AddWithKey;
-            SqlDb.QueryDataRow(
+            SqlDb_QueryDataRow.QueryDataRow(
                 new System.Data.SqlClient.SqlConnection(CONNECTION_STRING),
                  "SELECT @a AS A",
                 "@a".WithValue(value)
@@ -102,7 +102,7 @@ namespace Tests
         public void TestSelectNullableInt(int? value)
         {
             SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.AddWithKey;
-            SqlDb.QueryDataRow(
+            SqlDb_QueryDataRow.QueryDataRow(
                 new System.Data.SqlClient.SqlConnection(CONNECTION_STRING),
                  "SELECT @a AS A",
                 "@a".WithValue(value)

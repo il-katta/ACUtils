@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace ACUtils
@@ -17,7 +18,7 @@ namespace ACUtils
         private static MissingSchemaAction? missingSchemaAction;
 
         private bool _persistentConnection = false;
-
+        private SqlConnection _connection = null;
         public static MissingSchemaAction MissingSchemaAction
         {
             get
@@ -120,7 +121,7 @@ namespace ACUtils
             }
         }
 
-        internal static string ValueToString(object obj)
+        private static string ValueToString(object obj)
         {
             TypeSwitch ts = new TypeSwitch()
                 .Case((bool x) => x ? "1" : "0")
@@ -134,26 +135,6 @@ namespace ACUtils
                 .Case((char x) => $"'{x.ToString(CultureInfo.InvariantCulture)}'")
             ;
             return ts.Switch(obj);
-        }
-
-        internal void WriteLog(string queryString)
-        {
-            if (logger == null)
-            {
-                return;
-            }
-            string callerStack = GetCallerStack(4, 3);
-            logger.Debug($"SQL {callerStack}{Environment.NewLine}{queryString}");
-        }
-
-        internal void WriteLog(Exception exception, string queryString)
-        {
-            if (logger == null)
-            {
-                return;
-            }
-            string callerStack = GetCallerStack(4, 3);
-            logger.Error($"SQL {callerStack} : {exception}");
         }
 
         internal void WriteLog(string queryString, KeyValuePair<string, object>[] queryParams)
@@ -352,8 +333,62 @@ namespace ACUtils
                 AbortTransaction();
             }
             catch { }
+
+            try
+            {
+                if (_connection?.State == ConnectionState.Open)
+                {
+                    _connection.Close();
+                    SqlConnection.ClearPool(_connection);
+                }
+            }
+            catch { }
         }
         #endregion
+
+        private SqlConnection _rawConnection()
+        {
+            if (_persistentConnection)
+            {
+                if (_connection == null)
+                {
+                    _connection = new SqlConnection(ConnectionString);
+                }
+
+                return _connection;
+            }
+            var newConn = new SqlConnection(ConnectionString);
+            return newConn;
+        }
+
+        internal ConnectionWrapper _getConnection()
+        {
+            var conn = _rawConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+            return new ConnectionWrapper(conn, !this._persistentConnection);
+
+        }
+
+        internal async Task<ConnectionWrapper> _getConnectionAsync(System.Threading.CancellationToken? cancellationToken = null)
+        {
+            var conn = _rawConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                if (cancellationToken.HasValue)
+                {
+                    await conn.OpenAsync(cancellationToken.Value);
+
+                }
+                else
+                {
+                    await conn.OpenAsync();
+                }
+            }
+            return new ConnectionWrapper(conn, !this._persistentConnection);
+        }
 
         public static T GetColVal<T>(DataRow dataRow, string columnName)
         {

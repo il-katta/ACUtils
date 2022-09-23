@@ -51,20 +51,38 @@ namespace ACUtils
             return IdrateGenerator(dt).ToList();
         }
 
-        public static IEnumerable<T> Idrate(SqlDataReader reader)
+        public static IEnumerable<T> Idrate(IDataReader reader)
         {
             while (reader.Read())
             {
-                for (int i = 0; i < reader.FieldCount; i++)
+                foreach (var o in _returnIdrate(reader))
                 {
-                    var obj = new T();
-                    obj.idrate((IDataRecord)reader);
-                    yield return obj;
+                    yield return o;
                 }
             }
         }
 
-       
+        public async static IAsyncEnumerable<T> IdrateAsync(SqlDataReader reader)
+        {
+            while (await reader.ReadAsync())
+            {
+                foreach (var o in _returnIdrate(reader))
+                {
+                    yield return o;
+                }
+            }
+        }
+
+        private static IEnumerable<T> _returnIdrate(IDataReader reader)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                var obj = new T();
+                obj.idrate(reader);
+                yield return obj;
+            }
+        }
+
 
         #endregion
 
