@@ -16,6 +16,8 @@ namespace ACUtils
 
         private static MissingSchemaAction? missingSchemaAction;
 
+        private bool _persistentConnection = false;
+
         public static MissingSchemaAction MissingSchemaAction
         {
             get
@@ -29,553 +31,39 @@ namespace ACUtils
             set => missingSchemaAction = value;
         }
 
-        #region costructor
-        public SqlDb(string connectionString, ILogger logger)
+        #region constructor
+        public SqlDb(string connectionString, ILogger logger, bool persistentConnection = false)
         {
             this.ConnectionString = connectionString;
             this.logger = logger;
             scope = null;
+            this._persistentConnection = persistentConnection;
         }
 
-        public SqlDb(string connectionString, Serilog.ILogger logger)
+        public SqlDb(string connectionString, Serilog.ILogger logger, bool persistentConnection = false)
         {
             this.ConnectionString = connectionString;
             this.logger = new SerilogWrapper(logger);
             scope = null;
+            this._persistentConnection = persistentConnection;
         }
 
-        public SqlDb(string connectionString)
+        public SqlDb(string connectionString, bool persistentConnection = false)
         {
             this.ConnectionString = connectionString;
             this.logger = null;
             scope = null;
+            this._persistentConnection = persistentConnection;
         }
         #endregion
-
-        #region QueryDataTable
-        /// <summary>
-        /// Esegue la query e restituisce il DataTable del risultato
-        /// </summary>
-        /// <example>
-        /// db.QueryDataTable("SELECT * FROM A WHERE B = @B", "@B".WithValue("1"));
-        /// </example>
-        /// <param name="queryString">stringa contenente la stringa di interrogazione SQL</param>
-        /// <param name="queryParams">nomi dei parametri associati a i loro valori. utilizzare <see cref="KeyValuePairExt"/> come helper </param>
-        /// <returns></returns>
-        public DataTable QueryDataTable(string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataSet ds = QueryDataSet(queryString, queryParams);
-            return ds.Tables[0];
-        }
-
-        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataSet ds = QueryDataSet(connection, queryString, queryParams);
-            return ds.Tables[0];
-        }
-
-        public DataTable QueryDataTable(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            DataSet ds = QueryDataSet(queryString, queryParams);
-            return ds.Tables[0];
-        }
-
-        public static DataTable QueryDataTable(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            DataSet ds = QueryDataSet(connection, queryString, queryParams);
-            return ds.Tables[0];
-        }
-
-        public DataTable QueryDataTable(string queryString)
-        {
-            DataSet ds = QueryDataSet(queryString);
-            return ds.Tables[0];
-        }
-
-        public static DataTable QueryDataTable(SqlConnection connection, string queryString)
-        {
-            DataSet ds = QueryDataSet(connection, queryString);
-            return ds.Tables[0];
-        }
-
-        public List<T> QueryMany<T>(string sql, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
-        {
-            var dt = QueryDataTable(sql, queryParams);
-            return ACUtils.DBModel<T>.Idrate(dt);
-        }
-
-        public async IAsyncEnumerable<T> QueryManyAsync<T>(string sql, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
-        {
-            var dt = QueryDataTable(sql, queryParams);
-            await foreach (var q in ACUtils.DBModel<T>.IdrateAsyncGenerator(dt))
-            {
-                yield return q;
-            }
-        }
-
-        public static List<T> QueryMany<T>(SqlConnection connection, string sql, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
-        {
-            var dt = QueryDataTable(connection, sql, queryParams);
-            return ACUtils.DBModel<T>.Idrate(dt);
-        }
-
-        #endregion
-
-        #region QueryDataSet
-        public DataSet QueryDataSet(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString, queryParams);
-                    var ds = QueryDataSet(connection, queryString, queryParams);
-                    return ds;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
-                {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = MissingSchemaAction;
-                    adapter.Fill(ds);
-                    return ds;
-                }
-            }
-        }
-
-        public DataSet QueryDataSet(string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString, queryParams);
-                    var ds = QueryDataSet(connection, queryString, queryParams);
-                    return ds;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static DataSet QueryDataSet(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
-                {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = MissingSchemaAction;
-                    adapter.Fill(ds);
-                    return ds;
-                }
-            }
-        }
-
-        public DataSet QueryDataSet(string queryString)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString);
-                    var ds = QueryDataSet(connection, queryString);
-                    return ds;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static DataSet QueryDataSet(SqlConnection connection, string queryString)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString))
-            {
-                using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
-                {
-                    DataSet ds = new DataSet();
-                    adapter.MissingSchemaAction = MissingSchemaAction;
-                    adapter.Fill(ds);
-                    return ds;
-                }
-            }
-        }
-
-        #endregion
-
-        #region QueryDataRow
-        public DataRow QueryDataRow(string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataTable dt = QueryDataTable(
-                queryString,
-                queryParams
-            );
-
-            if (dt.Rows.Count == 0)
-            {
-                throw new Exceptions.NotFoundException("nessun risultato ottenuto");
-            }
-
-            if (dt.Rows.Count > 1)
-            {
-                throw new Exceptions.TooMuchResultsException("ottenuto più valori");
-            }
-            return dt.Rows[0];
-        }
-
-        public static DataRow QueryDataRow(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            DataTable dt = QueryDataTable(
-                connection,
-                queryString,
-                queryParams
-            );
-
-            if (dt.Rows.Count == 0)
-            {
-                throw new Exceptions.NotFoundException("nessun risultato ottenuto");
-            }
-
-            if (dt.Rows.Count > 1)
-            {
-                throw new Exceptions.TooMuchResultsException("ottenuto più valori");
-            }
-
-            return dt.Rows[0];
-        }
-
-        public T QueryOne<T>(
-            string sql,
-            params KeyValuePair<string, object>[] queryParams
-        ) where T : ACUtils.DBModel<T>, new()
-        {
-            var dr = QueryDataRow(sql, queryParams);
-            return ACUtils.DBModel<T>.Idrate(dr);
-        }
-
-
-        public static T QueryOne<T>(
-            SqlConnection connection,
-            string sql,
-            params KeyValuePair<string, object>[] queryParams
-        ) where T : ACUtils.DBModel<T>, new()
-        {
-            var dr = QueryDataRow(connection, sql, queryParams);
-            return ACUtils.DBModel<T>.Idrate(dr);
-        }
-
-        #endregion
-
-        #region QuerySingleValue
-
-        public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString, queryParams);
-                    var value = QuerySingleValue<T>(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                object value = selectCommand.ExecuteScalar();
-                return _changeType<T>(value);
-            }
-        }
-
-        public static Nullable<T> QueryNullableSingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                object value = selectCommand.ExecuteScalar();
-                if (value == null || value == DBNull.Value || value is DBNull)
-                {
-                    return null;
-                }
-                // conversione variabile da object a type specificato
-                //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
-                return _changeType<T?>(value);
-            }
-        }
-
-        public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString, queryParams);
-                    var value = QuerySingleValue<T>(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static T QuerySingleValue<T>(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                object value = selectCommand.ExecuteScalar();
-                return _changeType<T>(value);
-            }
-        }
-
-
-        public T QuerySingleValue<T>(string queryString)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    var value = QuerySingleValue<T>(connection, queryString);
-                    return _changeType<T>(value);
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-
-        public static T QuerySingleValue<T>(SqlConnection connection, string queryString)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString))
-            {
-                object value = selectCommand.ExecuteScalar();
-                return _changeType<T>(value);
-            }
-        }
-
-
-        public Nullable<T> QueryNullableSingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams) where T : struct
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString, queryParams);
-                    var value = QueryNullableSingleValue<T>(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        #endregion
-
-        #region Execute
-        public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
-            //queryString = System.Text.RegularExpressions.Regex.Replace(queryString, @"\s+", " ");
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    var value = Execute(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static bool Execute(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams)
-        {
-            //queryString = queryString.Trim().Replace(System.Environment.NewLine, " ");
-            //queryString = System.Text.RegularExpressions.Regex.Replace(queryString, @"\s+", " ");
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                var value = selectCommand.ExecuteNonQuery() > 0;
-                return value;
-            }
-        }
-
-        public bool Execute(string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    var value = Execute(connection, queryString, queryParams);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString, queryParams);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public bool Execute(SqlConnection connection, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString, queryParams))
-            {
-                var value = selectCommand.ExecuteNonQuery() > 0;
-                return value;
-            }
-        }
-
-        public bool Execute(string queryString)
-        {
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    WriteLog(queryString);
-                    var value = Execute(connection, queryString);
-                    return value;
-                }
-                catch (Exception ex)
-                {
-                    WriteLog(ex, queryString);
-                    throw;
-                }
-                finally
-                {
-                    try { connection.Close(); } catch { }
-                }
-            }
-        }
-
-        public static bool Execute(SqlConnection connection, string queryString)
-        {
-            using (SqlCommand selectCommand = generateCommand(connection, queryString))
-            {
-                return selectCommand.ExecuteNonQuery() > 0;
-            }
-        }
-
-        #endregion
-
-        public static T GetColVal<T>(DataRow dataRow, string columnName)
-        {
-            // dataRow.Field<T>(columnName)
-            object val = dataRow[columnName];
-            switch (val.GetType().Name)
-            {
-                case "DBNull":
-                    return default(T);
-            }
-            switch (typeof(T).Name)
-            {
-                case "String":
-                case "string":
-                    return (T)(object)val.ToString().Trim(); // OMFG!
-                case "Int32":
-                    if (val.GetType().Name.Equals("Decimal"))
-                    {
-                        return (T)(object)decimal.ToInt32((decimal)val);
-                    }
-                    return (T)val;
-                case "Int64":
-                    if (val.GetType().Name == "Int32")
-                    {
-                        return (T)(object)(int)val;
-                    }
-
-                    return (T)val;
-                default:
-                    return (T)val;
-            }
-        }
 
         #region generateCommand
-        private static SqlCommand generateCommand(SqlConnection connection, string queryString)
+        internal static SqlCommand generateCommand(SqlConnection connection, string queryString)
         {
             return new SqlCommand(queryString, connection);
         }
 
-        private static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
+        internal static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
         {
             SqlCommand command = new SqlCommand(queryString, connection);
             foreach (KeyValuePair<string, object> param in queryParams)
@@ -585,7 +73,7 @@ namespace ACUtils
             return command;
         }
 
-        private static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        internal static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             SqlCommand command = new SqlCommand(queryString, connection);
             foreach (KeyValuePair<string, KeyValuePair<SqlDbType, object>> param in queryParams)
@@ -597,7 +85,7 @@ namespace ACUtils
         #endregion
 
         #region log
-        private static string SqlTypeToString(SqlDbType type)
+        internal static string SqlTypeToString(SqlDbType type)
         {
             switch (type)
             {
@@ -632,7 +120,7 @@ namespace ACUtils
             }
         }
 
-        private static string ValueToString(object obj)
+        internal static string ValueToString(object obj)
         {
             TypeSwitch ts = new TypeSwitch()
                 .Case((bool x) => x ? "1" : "0")
@@ -648,7 +136,7 @@ namespace ACUtils
             return ts.Switch(obj);
         }
 
-        private void WriteLog(string queryString)
+        internal void WriteLog(string queryString)
         {
             if (logger == null)
             {
@@ -658,7 +146,7 @@ namespace ACUtils
             logger.Debug($"SQL {callerStack}{Environment.NewLine}{queryString}");
         }
 
-        private void WriteLog(Exception exception, string queryString)
+        internal void WriteLog(Exception exception, string queryString)
         {
             if (logger == null)
             {
@@ -668,7 +156,7 @@ namespace ACUtils
             logger.Error($"SQL {callerStack} : {exception}");
         }
 
-        private void WriteLog(string queryString, KeyValuePair<string, object>[] queryParams)
+        internal void WriteLog(string queryString, KeyValuePair<string, object>[] queryParams)
         {
             if (logger == null)
             {
@@ -682,7 +170,7 @@ namespace ACUtils
             logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
-        private void WriteLog(Exception exception, string queryString, KeyValuePair<string, object>[] queryParams)
+        internal void WriteLog(Exception exception, string queryString, KeyValuePair<string, object>[] queryParams)
         {
             if (logger == null)
             {
@@ -692,7 +180,7 @@ namespace ACUtils
             logger.Error($"SQL {callerStack} : {exception}");
         }
 
-        private void WriteLog(string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        internal void WriteLog(string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             if (logger == null)
             {
@@ -707,7 +195,7 @@ namespace ACUtils
             logger.Debug($"SQL {callerStack}{Environment.NewLine}{declares}{Environment.NewLine}{queryString}");
         }
 
-        private void WriteLog(Exception exception, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
+        internal void WriteLog(Exception exception, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
             if (logger == null)
             {
@@ -717,7 +205,7 @@ namespace ACUtils
             logger.Error($"SQL {callerStack} : {exception}");
         }
 
-        private string GetCallerStack(int start, int count)
+        internal string GetCallerStack(int start, int count)
         {
             string callerStack = "";
 
@@ -758,34 +246,6 @@ namespace ACUtils
             }
         }
 
-        #endregion
-
-        #region bulk insert
-        public void BulkInsert<T>(string tablename, IEnumerable<T> records)
-        {
-            using (var bc = new SqlBulkCopy(ConnectionString))
-            {
-                bc.WriteToServer(BulkInsertPrepare(bc, tablename, records));
-            }
-        }
-        public async System.Threading.Tasks.Task BulkInsertAsync<T>(string tablename, IEnumerable<T> records)
-        {
-            using (var bc = new SqlBulkCopy(ConnectionString))
-            {
-                await bc.WriteToServerAsync(BulkInsertPrepare(bc, tablename, records));
-            }
-        }
-
-        private DataTable BulkInsertPrepare<T>(SqlBulkCopy bc, string tablename, IEnumerable<T> records)
-        {
-            bc.DestinationTableName = tablename;
-            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-            foreach (var property in properties)
-            {
-                bc.ColumnMappings.Add(property.Name, property.Name);
-            }
-            return ToDataTable(records);
-        }
         #endregion
 
         #region datatable generation
@@ -895,8 +355,38 @@ namespace ACUtils
         }
         #endregion
 
+        public static T GetColVal<T>(DataRow dataRow, string columnName)
+        {
+            // dataRow.Field<T>(columnName)
+            object val = dataRow[columnName];
+            switch (val.GetType().Name)
+            {
+                case "DBNull":
+                    return default(T);
+            }
+            switch (typeof(T).Name)
+            {
+                case "String":
+                case "string":
+                    return (T)(object)val.ToString().Trim(); // OMFG!
+                case "Int32":
+                    if (val.GetType().Name.Equals("Decimal"))
+                    {
+                        return (T)(object)decimal.ToInt32((decimal)val);
+                    }
+                    return (T)val;
+                case "Int64":
+                    if (val.GetType().Name == "Int32")
+                    {
+                        return (T)(object)(int)val;
+                    }
 
-        private static T _changeType<T>(object value)
+                    return (T)val;
+                default:
+                    return (T)val;
+            }
+        }
+        internal static T _changeType<T>(object value)
         {
             // conversione variabile da object a type specificato
             //return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom(value);
