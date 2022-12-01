@@ -14,7 +14,7 @@ namespace ACUtils
             return QueryMany<T>(connection, queryString, new KeyValuePair<string, object>[0]);
         }
         #endregion
-        #region static with simple params 
+        #region static with simple params
         public static List<T> QueryMany<T>(SqlConnection connection, string queryString, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
         {
             return _return<T>(SqlDb_QueryDataTable.QueryDataTable(connection, queryString, queryParams));

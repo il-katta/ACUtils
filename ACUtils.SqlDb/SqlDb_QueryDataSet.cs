@@ -82,6 +82,7 @@ namespace ACUtils
             using (SqlDataAdapter adapter = new SqlDataAdapter(selectCommand))
             {
                 DataSet ds = new DataSet();
+                ds.EnforceConstraints = SqlDb.EnforceConstraints;
                 adapter.MissingSchemaAction = SqlDb.MissingSchemaAction;
                 adapter.Fill(ds);
                 return ds;

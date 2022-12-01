@@ -15,22 +15,14 @@ namespace ACUtils
         public ILogger logger { get; protected set; }
         private TransactionScope scope;
 
-        private static MissingSchemaAction? missingSchemaAction;
-
         private bool _persistentConnection = false;
         private SqlConnection _connection = null;
-        public static MissingSchemaAction MissingSchemaAction
-        {
-            get
-            {
-                if (missingSchemaAction == null)
-                {
-                    missingSchemaAction = MissingSchemaAction.AddWithKey;
-                }
-                return missingSchemaAction.GetValueOrDefault();
-            }
-            set => missingSchemaAction = value;
-        }
+
+        private static MissingSchemaAction missingSchemaAction = MissingSchemaAction.AddWithKey;
+        public static MissingSchemaAction MissingSchemaAction { get => missingSchemaAction; set => missingSchemaAction = value; }
+
+        private static bool enforceConstraints = true;
+        public static bool EnforceConstraints { get => enforceConstraints; set => enforceConstraints = value; }
 
         #region constructor
         public SqlDb(string connectionString, ILogger logger, bool persistentConnection = false)
