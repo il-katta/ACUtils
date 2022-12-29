@@ -58,10 +58,6 @@
     <Compile Include="Stuff\AXDoc.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ACUtils.AXRepository\ACUtils.AXRepository.csproj">
-      <Project>{9315e643-f70a-4582-8b4e-ed86cd458a08}</Project>
-      <Name>ACUtils.AXRepository</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ACUtils.DotNetUtils\ACUtils.DotNetUtils.csproj">
       <Project>{df92e0a8-bf71-45f6-89d8-397e6b8f2a95}</Project>
       <Name>ACUtils.DotNetUtils</Name>
