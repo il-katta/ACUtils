@@ -5,8 +5,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.142</Version>
-    <PackageVersion>1.0.0.142</PackageVersion>
+    <Version>1.0.0.143</Version>
+    <PackageVersion>1.0.0.143</PackageVersion>
     <Description>Utility per interrogazione database MSSQL</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     <PackageReference Include="CsvHelper" Version="15.0.5" />
   </ItemGroup>
 

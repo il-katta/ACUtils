@@ -45,7 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AXTests.cs" />
     <Compile Include="ConvertUtilsTest.cs" />
     <Compile Include="DotNetUtilsTest.cs" />
     <Compile Include="FileUtilsTests.cs" />
@@ -55,7 +54,6 @@
     <Compile Include="RegEditUtilTest.cs" />
     <Compile Include="SqlDbTest.cs" />
     <Compile Include="SqlDbUtilsTest.cs" />
-    <Compile Include="Stuff\AXDoc.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACUtils.DotNetUtils\ACUtils.DotNetUtils.csproj">
