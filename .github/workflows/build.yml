@@ -8,9 +8,7 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-2019
-
     steps:
       - uses: actions/checkout@v3
 
@@ -71,7 +69,10 @@ jobs:
       #    files: |
       #      dist/*.nupkg
       #      dist/*.snupkg
-
+  publish:
+    runs-on: windows-2019
+    if: github.ref == 'refs/heads/master'
+    steps:
       - name: Publish
         run: |
           foreach ($file in (Get-ChildItem dist/*.nupkg) ) { 

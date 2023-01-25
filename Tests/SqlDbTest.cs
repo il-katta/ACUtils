@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
+
 using ACUtils;
+
 using NUnit.Framework;
 
 namespace Tests
@@ -11,7 +14,7 @@ namespace Tests
     {
         private TransactionScope scope;
         private SqlDb db;
-        private string CONNECTION_STRING = "Data Source=(local);Initial Catalog=master;Integrated Security=SSPI;";
+        private string CONNECTION_STRING => System.Environment.GetEnvironmentVariable("ACUTILS_TEST_CONNECTION_STRING") ?? "Data Source=(local);Initial Catalog=master;Integrated Security=SSPI;";
 
         [SetUp]
         public void Setup()
@@ -45,7 +48,7 @@ namespace Tests
             );
 
             SqlDb.MissingSchemaAction = System.Data.MissingSchemaAction.Add;
-            
+
             db.QueryDataRow(
                 "SELECT @a AS A",
                 "@a".WithValue(value, 3)
@@ -127,6 +130,29 @@ namespace Tests
                 "@a".WithValue(value)
             );
             Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public void TestQueryDictionary()
+        {
+            var sqlQuery = "SELECT BusinessEntityID, ISNULL(FirstName + ' ', '') + ISNULL(MiddleName + ' ','') + ISNULL(LastName, '') AS [FullName] FROM Person.Person";
+            var keyField = "BusinessEntityID";
+            var valueField = "FullName";
+            var count = db.QuerySingleValue<int>("SELECT COUNT(*) FROM Person.Person");
+            Dictionary<int, string> result;
+
+            using (var connection = new System.Data.SqlClient.SqlConnection(CONNECTION_STRING))
+            {
+                result = SqlDb_QueryDictionary.QueryDictionary<int, string>(connection, sqlQuery, keyField, valueField);
+            }
+            Assert.AreEqual(count, result.Count);
+            Assert.AreEqual(result[285], "Syed E Abbas");
+            Assert.AreEqual(result[8722], "Sara Blue");
+
+            result = db.QueryDictionary<int, string>(sqlQuery, keyField, valueField);
+            Assert.AreEqual(count, result.Count);
+            Assert.AreEqual(result[285], "Syed E Abbas");
+            Assert.AreEqual(result[8722], "Sara Blue");
         }
 
     }
