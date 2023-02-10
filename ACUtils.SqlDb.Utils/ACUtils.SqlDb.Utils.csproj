@@ -4,8 +4,8 @@
     <Authors>Andrea Cattaneo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.146</Version>
-    <PackageVersion>1.0.0.146</PackageVersion>
+    <Version>1.0.0.147</Version>
+    <PackageVersion>1.0.0.147</PackageVersion>
     <Description>Utilities per gestione DataTable</Description>
     <NeutralLanguage>it</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
