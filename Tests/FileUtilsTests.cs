@@ -241,7 +241,6 @@ namespace Tests
         }
 
         [Test]
-        [TestCase(@"ANDREA-C-2021-1\test")]
         [TestCase(@"NT AUTHORITY\NETWORK")]
         [Parallelizable(ParallelScope.All)]
         public void FixAclTest(string identityUPN)

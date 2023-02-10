@@ -14,7 +14,7 @@ namespace Tests
     {
         private TransactionScope scope;
         private SqlDb db;
-        private string CONNECTION_STRING => System.Environment.GetEnvironmentVariable("ACUTILS_TEST_CONNECTION_STRING") ?? "Data Source=(local);Initial Catalog=master;Integrated Security=SSPI;";
+        private string CONNECTION_STRING => System.Environment.GetEnvironmentVariable("ACUTILS_TEST_CONNECTION_STRING") ?? "Data Source=(local);Initial Catalog=AdventureWorks2019;Integrated Security=SSPI;";
 
         [SetUp]
         public void Setup()
@@ -153,6 +153,26 @@ namespace Tests
             Assert.AreEqual(count, result.Count);
             Assert.AreEqual(result[285], "Syed E Abbas");
             Assert.AreEqual(result[8722], "Sara Blue");
+        }
+
+
+        class DbPerson: ACUtils.DBModel<DbPerson>
+        {
+            public int BusinessEntityID { get; set; }
+            public string PersonType { get; set; }
+            public string Title { get; set; }
+            public string FirstName { get; set; }
+            public string MiddleName { get; set; }
+            public string LastName { get; set; }
+        }
+
+
+        [Test]
+        public void TestQueryMany()
+        {
+            var count = db.QuerySingleValue<int>("SELECT COUNT(*) FROM Person.Person");
+            var allPersons = db.QueryMany<DbPerson>("SELECT * FROM Person.Person");
+            Assert.AreEqual(count, allPersons.ToList().Count);
         }
 
     }

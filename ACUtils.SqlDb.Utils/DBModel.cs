@@ -55,10 +55,7 @@ namespace ACUtils
         {
             while (reader.Read())
             {
-                foreach (var o in _returnIdrate(reader))
-                {
-                    yield return o;
-                }
+                yield return _returnIdrate(reader);
             }
         }
 
@@ -66,21 +63,15 @@ namespace ACUtils
         {
             while (await reader.ReadAsync())
             {
-                foreach (var o in _returnIdrate(reader))
-                {
-                    yield return o;
-                }
+                yield return _returnIdrate(reader);
             }
         }
 
-        private static IEnumerable<T> _returnIdrate(IDataReader reader)
+        private static T _returnIdrate(IDataReader reader)
         {
-            for (int i = 0; i < reader.FieldCount; i++)
-            {
-                var obj = new T();
-                obj.idrate(reader);
-                yield return obj;
-            }
+            var obj = new T();
+            obj.idrate(reader);
+            return obj;
         }
 
 
