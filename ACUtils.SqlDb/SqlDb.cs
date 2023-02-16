@@ -364,8 +364,25 @@ namespace ACUtils
 
         }
 
-        internal async Task<ConnectionWrapper> _getConnectionAsync(System.Threading.CancellationToken? cancellationToken = null)
+        internal async Task<ConnectionWrapper> _getConnectionAsync(bool newConnection = false, System.Threading.CancellationToken? cancellationToken = null)
         {
+            if (newConnection)
+            {
+                var newConn = new SqlConnection(ConnectionString);
+                if (newConn.State != ConnectionState.Open)
+                {
+                    if (cancellationToken.HasValue)
+                    {
+                        await newConn.OpenAsync(cancellationToken.Value);
+
+                    }
+                    else
+                    {
+                        await newConn.OpenAsync();
+                    }
+                }
+                return new ConnectionWrapper(newConn, true);
+            }
             var conn = _rawConnection();
             if (conn.State != ConnectionState.Open)
             {

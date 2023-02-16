@@ -58,7 +58,7 @@ namespace ACUtils
         #region with simple params
         public static async IAsyncEnumerable<T> QueryManyAsync<T>(this SqlDb self, string queryString, params KeyValuePair<string, object>[] queryParams) where T : ACUtils.DBModel<T>, new()
         {
-            using (var connection = await self._getConnectionAsync())
+            using (var connection = await self._getConnectionAsync(newConnection: true))
             {
                 self.WriteLog(queryString, queryParams);
                 await foreach (var q in QueryManyAsync<T>(connection.Connection, queryString, queryParams))
@@ -71,7 +71,7 @@ namespace ACUtils
         #region whit typed params
         public static async IAsyncEnumerable<T> QueryManyAsync<T>(this SqlDb self, string queryString, params KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams) where T : ACUtils.DBModel<T>, new()
         {
-            using (var connection = await self._getConnectionAsync())
+            using (var connection = await self._getConnectionAsync(newConnection: true))
             {
                 self.WriteLog(queryString, queryParams);
                 await foreach (var q in QueryManyAsync<T>(connection.Connection, queryString, queryParams))
