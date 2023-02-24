@@ -64,7 +64,7 @@ namespace ACUtils
 
         internal static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
         {
-            SqlCommand command = new SqlCommand(queryString, connection);
+            SqlCommand command = generateCommand(connection, queryString);
             foreach (KeyValuePair<string, object> param in queryParams)
             {
                 command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
@@ -74,7 +74,7 @@ namespace ACUtils
 
         internal static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, KeyValuePair<SqlDbType, object>>[] queryParams)
         {
-            SqlCommand command = new SqlCommand(queryString, connection);
+            SqlCommand command = generateCommand(connection, queryString);
             foreach (KeyValuePair<string, KeyValuePair<SqlDbType, object>> param in queryParams)
             {
                 command.Parameters.Add(param.Key, param.Value.Key).Value = param.Value.Value ?? DBNull.Value;
