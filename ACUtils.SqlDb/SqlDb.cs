@@ -20,6 +20,7 @@ namespace ACUtils
 
         private static MissingSchemaAction missingSchemaAction = MissingSchemaAction.AddWithKey;
         public static MissingSchemaAction MissingSchemaAction { get => missingSchemaAction; set => missingSchemaAction = value; }
+        public static int? CommandTimeout;
 
         private static bool enforceConstraints = true;
         public static bool EnforceConstraints { get => enforceConstraints; set => enforceConstraints = value; }
@@ -53,7 +54,12 @@ namespace ACUtils
         #region generateCommand
         internal static SqlCommand generateCommand(SqlConnection connection, string queryString)
         {
-            return new SqlCommand(queryString, connection);
+            var command = new SqlCommand(queryString, connection);
+            if (CommandTimeout.HasValue)
+            {
+                command.CommandTimeout = CommandTimeout.Value;
+            }
+            return command;
         }
 
         internal static SqlCommand generateCommand(SqlConnection connection, string queryString, KeyValuePair<string, object>[] queryParams)
@@ -406,7 +412,7 @@ namespace ACUtils
             switch (val.GetType().Name)
             {
                 case "DBNull":
-                    return default(T);
+                    return default;
             }
             switch (typeof(T).Name)
             {
