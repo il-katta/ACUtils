@@ -254,7 +254,7 @@ namespace ACUtils
             int i;
 
             //#### Collect the a_oProperties for the passed T
-            System.Reflection.PropertyInfo[] a_oProperties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            System.Reflection.PropertyInfo[] a_oProperties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).Where(p => p.CanRead && !p.DeclaringType.IsConstructedGenericType).ToArray();
 
             //#### Traverse each oProperty, .Add'ing each .Name/.BaseType into our oReturn value
             //####     NOTE: The call to .BaseType is required as DataTables/DataSets do not support nullable types, so it's non-nullable counterpart Type is required in the .Column definition

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace ACUtils
 {
@@ -16,6 +17,7 @@ namespace ACUtils
                 }
             }
         }
+
         public static async System.Threading.Tasks.Task BulkInsertAsync<T>(this SqlDb self, string tablename, IEnumerable<T> records)
         {
             using (var connection = await self._getConnectionAsync())
@@ -30,10 +32,11 @@ namespace ACUtils
         internal static DataTable BulkInsertPrepare<T>(this SqlDb self, SqlBulkCopy bc, string tablename, IEnumerable<T> records)
         {
             bc.DestinationTableName = tablename;
-            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).Where(p => p.CanRead && !p.DeclaringType.IsConstructedGenericType);
             foreach (var property in properties)
             {
-                bc.ColumnMappings.Add(property.Name, property.Name);
+                var attr = DBModel.GetDbAttribute<T>(propertyName: property.Name);
+                bc.ColumnMappings.Add(property.Name, attr?.DbField ?? property.Name);
             }
             return SqlDb.ToDataTable(records);
         }

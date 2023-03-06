@@ -118,7 +118,7 @@ namespace ACUtils
         {
             return GetValueBy<Q>(field, property => GetDbAttribute(property.Name)?.DbField);
         }
-
+        
         public object this[string fieldName]
         {
             get
@@ -295,6 +295,14 @@ namespace ACUtils
             var propr = GetType().GetProperty(propertyName);
             var attrs = propr.GetCustomAttributes(typeof(IDbFieldAttribute), true);
             return attrs.LastOrDefault() as IDbFieldAttribute;
+        }
+
+        public static IDbFieldAttribute GetDbAttribute<T>(string propertyName)
+        {
+            var type = typeof(T);
+            var propr = type.GetProperty(propertyName);
+            var attrs = propr?.GetCustomAttributes(typeof(IDbFieldAttribute), true);
+            return attrs?.LastOrDefault() as IDbFieldAttribute;
         }
 
     }

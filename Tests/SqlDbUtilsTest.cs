@@ -17,9 +17,18 @@ namespace Tests
         public int? nullableIntValue { get; set; }
         public int intValue { get; set; }
         public decimal decimalValue { get; set; }
+        [DbField("DB_FILE_NAME_FLOAT")]
         public float floatValue { get; set; }
         public DateTime datetimeValue { get; set; }
 
+    }
+
+    internal class TestGetDbAttributeClass: DBModel
+    {
+        public decimal decimalValue { get; set; }
+        [DbField("DB_FILE_NAME_FLOAT")]
+        public float floatValue { get; set; }
+        public DateTime datetimeValue { get; set; }
     }
 
     [TestFixture]
@@ -41,7 +50,7 @@ namespace Tests
             _testDt.Columns.Add("stringValue", typeof(string));
             _testDt.Columns.Add("intValue", typeof(int));
             _testDt.Columns.Add("decimalValue", typeof(decimal));
-            _testDt.Columns.Add("floatValue", typeof(float));
+            _testDt.Columns.Add("DB_FILE_NAME_FLOAT", typeof(float));
             _testDt.Columns.Add("datetimeValue", typeof(DateTime));
             for (int i = 0; i < DT_SIZE; i++)
             {
@@ -49,7 +58,7 @@ namespace Tests
                 dr["stringValue"] = i.ToString();
                 dr["intValue"] = i;
                 dr["decimalValue"] = new Decimal(i / 2);
-                dr["floatValue"] = (float)i / 2;
+                dr["DB_FILE_NAME_FLOAT"] = (float)i / 2;
                 dr["datetimeValue"] = DateTime.Now;
                 _testDt.Rows.Add(dr);
             }
@@ -77,6 +86,25 @@ namespace Tests
                 Assert.AreEqual((float)i / 2, obj.floatValue);
                 Assert.AreEqual(dr["datetimeValue"], obj.datetimeValue);
             }
+        }
+
+
+        [Test]
+        public void testGetDbAttribute()
+        {
+            Assert.AreEqual("DB_FILE_NAME_FLOAT", DBModel.GetDbAttribute<TestDbModel>("floatValue").DbField);
+            Assert.AreEqual("DB_FILE_NAME_FLOAT", DBModel.GetDbAttribute<TestGetDbAttributeClass>("floatValue").DbField);
+
+            var model = new TestDbModel();
+            Assert.AreEqual("DB_FILE_NAME_FLOAT", model.GetDbAttribute("floatValue").DbField);
+
+            var model2 = new TestGetDbAttributeClass();
+            Assert.AreEqual("DB_FILE_NAME_FLOAT", model2.GetDbAttribute("floatValue").DbField);
+
+
+            Assert.IsNull(DBModel.GetDbAttribute<TestDbModel>("stringValue"));
+
+            Assert.IsNull(DBModel.GetDbAttribute<TestDbModel>("not exists property"));
         }
 
         [Test]

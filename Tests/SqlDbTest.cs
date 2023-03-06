@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Transactions;
 
@@ -156,9 +157,10 @@ namespace Tests
         }
 
 
-        class DbPerson: ACUtils.DBModel<DbPerson>
+        class DbPerson : ACUtils.DBModel<DbPerson>
         {
-            public int BusinessEntityID { get; set; }
+            [DbField("BusinessEntityID")]
+            public int Id { get; set; }
             public string PersonType { get; set; }
             public string Title { get; set; }
             public string FirstName { get; set; }
@@ -175,5 +177,54 @@ namespace Tests
             Assert.AreEqual(count, allPersons.ToList().Count);
         }
 
+
+
+        [TestCase(100, false)]
+        [TestCase(100, true)]
+        public void TestBulkInsert(int rows, bool async)
+        {
+            // prepare
+            var nextId = db.QuerySingleValue<int>("SELECT MAX(BusinessEntityID) + 1 FROM Person.Person");
+            var initialCount = db.QuerySingleValue<int>("SELECT COUNT(*) FROM Person.Person");
+            var objects = new List<DbPerson>();
+            for (int i = nextId; i < (nextId + rows); i++)
+            {
+                objects.Add(new DbPerson()
+                {
+                    Id = i,
+                    PersonType = "EM",
+                    Title = "Test",
+                    FirstName = $"FirstName {i}",
+                    MiddleName = $"MiddleName {i}",
+                    LastName = $"LastName {i}",
+                });
+            }
+
+            // execute
+            if (async)
+            {
+                db.BulkInsertAsync("Person.Person", objects).Wait();
+            }
+            else
+            {
+                db.BulkInsert("Person.Person", objects);
+            }
+
+            // test
+            var finalCount = db.QuerySingleValue<int>("SELECT COUNT(*) FROM Person.Person");
+            Assert.AreEqual(initialCount + rows, finalCount);
+
+            foreach (var person in objects)
+            {
+                Assert.IsTrue(person.Id > 0);
+                var dr = db.QueryDataRow("SELECT * FROM Person.Person WHERE BusinessEntityID = @ID", "@ID".WithValue(person.Id));
+                Assert.AreEqual(person.Id, dr.Field<int>("BusinessEntityID"));
+                Assert.AreEqual(person.PersonType, dr.Field<string>("PersonType"));
+                Assert.AreEqual(person.Title, dr.Field<string>("Title"));
+                Assert.AreEqual(person.FirstName, dr.Field<string>("FirstName"));
+                Assert.AreEqual(person.MiddleName, dr.Field<string>("MiddleName"));
+                Assert.AreEqual(person.LastName, dr.Field<string>("LastName"));
+            }
+        }
     }
 }
