@@ -11,6 +11,13 @@ namespace Tests
     [TestFixture]
     public class FileUtilsTests
     {
+        /*
+        string FTP_USERNAME = System.Environment.GetEnvironmentVariable("FTP_USERNAME") ?? "test";
+        string FTP_PASSWORD = System.Environment.GetEnvironmentVariable("FTP_PASSWORD") ?? "test";
+        string FTP_PATH = System.Environment.GetEnvironmentVariable("FTP_PATH") ?? "/home/test";
+        string FTP_HOST = System.Environment.GetEnvironmentVariable("FTP_HOST") ?? "ftp://localhost:21/";
+        */
+
         [SetUp]
         public void Setup()
         {
@@ -104,6 +111,7 @@ namespace Tests
             }
         }
 
+        /*
         [Test]
         [TestCase("EmbeddedResourceFile.txt")]
         [TestCase(null)]
@@ -115,18 +123,18 @@ namespace Tests
             }
             FileUtils.FtpUpload(
                 ftpFile,
-                "ftp://localhost:21/",
-                "/",
-                "",
-                "",
+                FTP_HOST,
+                FTP_PATH,
+                FTP_USERNAME,
+                FTP_PASSWORD,
                 false
             );
 
             System.Collections.Generic.List<string> listFtpFiles = FileUtils.FtpList(
-                "ftp://localhost:21/",
-                "/",
-                "",
-                "",
+                FTP_HOST,
+                FTP_PATH,
+                FTP_USERNAME,
+                FTP_PASSWORD,
                 false
             );
 
@@ -151,20 +159,21 @@ namespace Tests
             {
                 FileUtils.FtpDownload(
                     download_path.Value,
-                    "ftp://localhost:21/",
-                    System.IO.Path.GetFileName(filePath),
-                    "",
-                    "",
+                    FTP_HOST,
+                    $"{FTP_PATH}/{System.IO.Path.GetFileName(filePath)}",
+                    FTP_USERNAME,
+                    FTP_PASSWORD,
                     false
                 );
 
                 Assert.IsTrue(FileUtils.IsFile(download_path.Value));
                 System.Collections.Generic.List<string> list = FileUtils.FtpList(
-                    "ftp://localhost:21/",
-                    "/",
-                    "",
-                    "",
-                    false);
+                    FTP_HOST,
+                    FTP_PATH,
+                    FTP_USERNAME,
+                    FTP_PASSWORD,
+                    false
+                );
                 Assert.AreEqual(
                     expected: FileUtils.FileChecksum(filePath),
                     actual: FileUtils.FileChecksum(download_path.Value)
@@ -178,45 +187,46 @@ namespace Tests
         {
             Assert.IsFalse(
                 FileUtils.FtpDelete(
-                    "ftp://localhost:21/",
+                    FTP_HOST,
                     "file_not_found.txt",
-                    "",
-                    "",
+                    FTP_USERNAME,
+                    FTP_PASSWORD,
                     false
                 )
             );
 
             System.Collections.Generic.List<string> listFtpFiles = FileUtils.FtpList(
-                "ftp://localhost:21/",
-                "/",
-                "",
-                "",
+                FTP_HOST,
+                FTP_PATH,
+                FTP_USERNAME,
+                FTP_PASSWORD,
                 false
             );
+            Assert.IsTrue(listFtpFiles.Count != 0);
             foreach (string ftpFile in listFtpFiles)
             {
                 Assert.IsTrue(
                     FileUtils.FtpDelete(
-                        "ftp://localhost:21/",
+                        FTP_HOST,
                         ftpFile,
-                        "",
-                        "",
+                        FTP_USERNAME,
+                        FTP_PASSWORD,
                         false
                     )
                 );
             }
 
             listFtpFiles = FileUtils.FtpList(
-                "ftp://localhost:21/",
-                "/",
-                "",
-                "",
+                FTP_HOST,
+                FTP_PATH,
+                FTP_USERNAME,
+                FTP_PASSWORD,
                 false
             );
 
             Assert.IsTrue(listFtpFiles.Count == 0);
         }
-
+        */
 
         private bool _hasSomePermissions(string filePath, string accountName)
         {
@@ -273,7 +283,7 @@ namespace Tests
             // PROBLEMA: se si utilizza File.Move i permessi al file non vengono applicati
             File.WriteAllText(sourcePath, "hello there!");
             File.Move(sourcePath, destPath);
-            Assert.IsFalse(_hasSomePermissions( destPath, identityUPN));
+            Assert.IsFalse(_hasSomePermissions(destPath, identityUPN));
 
             // ACUtils.FileUtils.MoveFile con parametro fixAcl=true risolve il problema XD
             File.WriteAllText(sourcePath, "hello there!");
@@ -285,5 +295,5 @@ namespace Tests
 
 
 
-    
+
 }

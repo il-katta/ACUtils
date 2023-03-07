@@ -38,6 +38,14 @@ jobs:
           msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Restore"
           msbuild.exe ACUtils.sln /p:Configuration="Release" /p:Platform="Any CPU" /t:"Rebuild"
 
+      - uses: actions/cache@v3
+        id: cache-tests-build
+        env:
+          cache-name: cache-tests-build
+        with:
+          path: ./Tests/bin/Release
+          key: tests-${{ github.sha }}
+
       #- name: Commit deploy
       #  run: |
       #    git config user.name github-actions
@@ -64,8 +72,28 @@ jobs:
       #      dist/*.nupkg
       #      dist/*.snupkg
 
-  publish:
+  test:
     needs: build
+    runs-on: windows-2019
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: microsoft/setup-msbuild@v1.1
+      - uses: darenm/Setup-VSTest@v1.2
+      - uses: actions/cache@v3
+        id: cache-tests-build
+        env:
+          cache-name: cache-tests-build
+        with:
+          path: ./Tests/bin/Release
+          key: tests-${{ github.sha }}
+      - name: run test
+        run: |
+          [System.Environment]::SetEnvironmentVariable('ACUTILS_TEST_CONNECTION_STRING', '${{ secrets.ACUTILS_TEST_CONNECTION_STRING }}')
+          vstest.console.exe /Platform:x64 ./Tests/bin/Release/Tests.dll
+
+  publish:
+    needs: test
     runs-on: windows-2019
     if: github.ref == 'refs/heads/master'
     steps:
