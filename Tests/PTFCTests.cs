@@ -169,7 +169,6 @@ namespace Tests
                 .OnError((e) =>
                 {
                     Assert.AreEqual(e.Message, exceptionMessage);
-                    Console.WriteLine("test concluso");
                     success = true;
                     Assert.Pass("action OnError eseguita");
                 })

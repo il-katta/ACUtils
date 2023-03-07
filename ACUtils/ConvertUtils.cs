@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace ACUtils
 {
@@ -79,7 +80,14 @@ namespace ACUtils
             }
             catch
             {
-                return null;
+                try
+                {
+                    return DateTime.Parse(dateString, new CultureInfo("it-IT", false));
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
 
