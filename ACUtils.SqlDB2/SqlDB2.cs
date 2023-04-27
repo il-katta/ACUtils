@@ -15,9 +15,8 @@ namespace ACUtils
         string ConnectionString;
         bool connectionPersist;
         bool useTransaction = false;
-        iDB2Transaction _transaction;
-        iDB2Connection _connection;
-
+        private iDB2Transaction _transaction;
+        private iDB2Connection _connection;
         public SqlDB2(string connectionString, ILogger logger, bool connectionPersist = false)
         {
             ConnectionString = connectionString;
@@ -52,11 +51,11 @@ namespace ACUtils
 
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
-                    iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    iDB2Command selectCommand = GenerateCommand(connection.Connection, queryString, queryParams);
                     iDB2DataAdapter adapter = new iDB2DataAdapter(selectCommand);
                     DataSet ds = new DataSet();
                     // adapter.MissingSchemaAction = MissingSchemaAction.AddWithKey
@@ -77,11 +76,11 @@ namespace ACUtils
 
         public DataSet QueryDataSet(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
-                    iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    iDB2Command selectCommand = GenerateCommand(connection.Connection, queryString, queryParams);
                     iDB2DataAdapter adapter = new iDB2DataAdapter(selectCommand);
                     DataSet ds = new DataSet();
                     adapter.Fill(ds, "table");
@@ -101,7 +100,7 @@ namespace ACUtils
 
         public DataSet QueryDataSet(string queryString)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
@@ -138,11 +137,11 @@ namespace ACUtils
         #region QuerySingleValue
         public T QuerySingleValue<T>(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
-                    iDB2Command selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    iDB2Command selectCommand = GenerateCommand(connection.Connection, queryString, queryParams);
                     object value = selectCommand.ExecuteScalar();
                     try
                     {
@@ -172,7 +171,7 @@ namespace ACUtils
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        public T QuerySingleValue<T>(iDB2Connection connection, string queryString)
+        public T QuerySingleValue<T>(ConnectionWrapper connection, string queryString)
         {
             iDB2Command selectCommand = GenerateCommand(connection, queryString);
             object value = selectCommand.ExecuteScalar();
@@ -185,7 +184,7 @@ namespace ACUtils
 
         public IEnumerable<iDB2DataReader> _queryReader(string queryString)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 using (iDB2DataReader reader = GenerateCommand(connection, queryString).ExecuteReader())
                 {
@@ -209,9 +208,9 @@ namespace ACUtils
 
         public IEnumerable<iDB2DataReader> _queryReader(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
-                using (iDB2DataReader reader = GenerateCommand(connection, queryString, queryParams).ExecuteReader())
+                using (iDB2DataReader reader = GenerateCommand(connection.Connection, queryString, queryParams).ExecuteReader())
                 {
                     while (reader.Read()) yield return reader;
                 }
@@ -252,7 +251,7 @@ namespace ACUtils
             }
         }
 
-        public IEnumerable<iDB2DataReader> _queryReader(iDB2Connection connection, string queryString)
+        public IEnumerable<iDB2DataReader> _queryReader(ConnectionWrapper connection, string queryString)
         {
             using (iDB2DataReader reader = GenerateCommand(connection, queryString).ExecuteReader())
             {
@@ -279,11 +278,11 @@ namespace ACUtils
 
         public bool Execute(string queryString, params KeyValuePair<string, object>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
-                    var selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var selectCommand = GenerateCommand(connection.Connection, queryString, queryParams);
                     var value = selectCommand.ExecuteNonQuery() > 0;
                     return value;
                 }
@@ -301,11 +300,11 @@ namespace ACUtils
 
         public bool Execute(string queryString, params KeyValuePair<string, KeyValuePair<iDB2DbType, object>>[] queryParams)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
-                    var selectCommand = GenerateCommand(connection, queryString, queryParams);
+                    var selectCommand = GenerateCommand(connection.Connection, queryString, queryParams);
                     var value = selectCommand.ExecuteNonQuery() > 0;
                     return value;
                 }
@@ -323,7 +322,7 @@ namespace ACUtils
 
         public bool Execute(string queryString)
         {
-            using (iDB2Connection connection = GetConnection())
+            using (var connection = GetConnection())
             {
                 try
                 {
@@ -348,10 +347,10 @@ namespace ACUtils
 
         #region GenerateCommand
 
-        public iDB2Command GenerateCommand(iDB2Connection connection, string queryString)
+        public iDB2Command GenerateCommand(ConnectionWrapper connection, string queryString)
         {
             WriteLog(queryString);
-            var command = new iDB2Command(queryString, connection);
+            var command = new iDB2Command(queryString, connection.Connection);
             if (useTransaction)
             {
                 command.Transaction = _transaction;
@@ -390,7 +389,12 @@ namespace ACUtils
 
         #endregion
 
-        public iDB2Connection GetConnection()
+        public ConnectionWrapper GetConnection()
+        {
+            return _getConnection();
+        }
+
+        private iDB2Connection _rawConnection()
         {
             if (connectionPersist)
             {
@@ -398,13 +402,27 @@ namespace ACUtils
                 {
                     _connection = new iDB2Connection(ConnectionString);
                 }
-                _connection.Open();
+
                 return _connection;
             }
+            var newConn = new iDB2Connection(ConnectionString);
+            return newConn;
+        }
 
-            var connection = new iDB2Connection(ConnectionString);
-            connection.Open();
-            return connection;
+        internal ConnectionWrapper _getConnection()
+        {
+            var conn = _rawConnection();
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+            return new ConnectionWrapper(conn, !this.connectionPersist);
+
+        }
+
+        public void ConnectionClose(ConnectionWrapper connection, bool force = false)
+        {
+            ConnectionClose(connection.Connection);
         }
 
         public void ConnectionClose(iDB2Connection connection, bool force = false)
@@ -419,12 +437,11 @@ namespace ACUtils
             }
         }
 
-
         public void BeginTransaction()
         {
             useTransaction = true;
             connectionPersist = true;
-            _transaction = GetConnection().BeginTransaction();
+            _transaction = GetConnection().Connection.BeginTransaction();
         }
 
         public void CompleteTransaction()
