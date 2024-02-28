@@ -1,4 +1,6 @@
-﻿namespace ACUtils
+﻿using System.Globalization;
+
+namespace ACUtils
 {
     public static class StringUtils
     {
@@ -16,6 +18,16 @@
         {
             byte[] data = System.Convert.FromBase64String(encodedString);
             return System.Text.Encoding.UTF8.GetString(data);
+        }
+
+        public static decimal Normalize(this decimal value)
+        {
+            return value / 1.000000000000000000000000000000000m;
+        }
+
+        public static string ToNormalizedString(this decimal value, string culture = "it-IT")
+        {
+            return value.Normalize().ToString(CultureInfo.CreateSpecificCulture(culture));
         }
     }
 }
