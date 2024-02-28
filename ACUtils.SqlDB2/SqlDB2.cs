@@ -455,8 +455,8 @@ namespace ACUtils
         public void AbortTransaction()
         {
             useTransaction = false;
-            _transaction.Rollback();
-            _transaction.Dispose();
+            _transaction?.Rollback();
+            _transaction?.Dispose();
             _transaction = null;
         }
 
